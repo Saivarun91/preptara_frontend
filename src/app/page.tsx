@@ -1,103 +1,116 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useRef } from "react";
+import Hero from "@/components/home/Hero";
+import AnalyticsSection from "@/components/home/AnalyticsSection";
+import FeaturesSection from "@/components/home/FeaturesSection";
+import TestsSection from "@/components/home/TestsSection";
+import TestimonialsSection from "@/components/home/TestimonialsSection";
+import FAQSection from "@/components/home/FAQSection";
+import { CTASection } from "@/components/home/CTASection";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [searchQuery, setSearchQuery] = useState("");
+  const testsSectionRef = useRef<HTMLDivElement>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    setTimeout(() => {
+      testsSectionRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 200);
+  };
+
+  const handleResetSearch = () => setSearchQuery("");
+
+  return (
+    <>
+      <Hero onSearch={handleSearch} />
+      <AnalyticsSection />
+      <FeaturesSection />
+      <div ref={testsSectionRef}>
+        {/* ✅ These props must exist in TestsSection */}
+        <TestsSection
+          searchQuery={searchQuery}
+          onResetSearch={handleResetSearch}
+        />
+      </div>
+      <TestimonialsSection />
+      <FAQSection />
+      <CTASection />
+    </>
   );
 }
+
+
+
+
+
+// "use client";
+
+// import { useEffect, useState } from "react";
+// import axios from "axios";
+// import Hero from "@/components/home/Hero";
+// import Analytics from "@/components/home/AnalyticsSection";
+// import Features from "@/components/home/FeaturesSection";
+// import Testimonials from "@/components/home/TestimonialsSection";
+// import FAQs from "@/components/home/FAQSection";
+// import CTA from "@/components/home/CTASection";
+
+// export default function HomePage() {
+//   const [data, setData] = useState<any>({});
+//   const [loading, setLoading] = useState(true);
+
+//   // Your backend API base URL
+//   const API_BASE = "http://127.0.0.1:8000/api/home";
+
+//   useEffect(() => {
+//     async function loadData() {
+//       try {
+//         const [
+//           heroRes,
+//           analyticsRes,
+//           featuresRes,
+//           testimonialsRes,
+//           faqsRes,
+//           ctaRes,
+//         ] = await Promise.all([
+//           axios.get(`${API_BASE}/hero/`),
+//           axios.get(`${API_BASE}/analytics/`),
+//           axios.get(`${API_BASE}/features/`),
+//           axios.get(`${API_BASE}/testimonials/`),
+//           axios.get(`${API_BASE}/faqs/`),
+//           axios.get(`${API_BASE}/cta/`),
+//         ]);
+
+//         setData({
+//           hero: heroRes.data.data,
+//           analytics: analyticsRes.data.stats,
+//           features: featuresRes.data.features,
+//           testimonials: testimonialsRes.data.testimonials,
+//           faqs: faqsRes.data.faqs,
+//           cta: ctaRes.data.data || ctaRes.data.cta,
+//         });
+//       } catch (e) {
+//         console.error("Error loading homepage:", e);
+//       } finally {
+//         setLoading(false);
+//       }
+//     }
+
+//     loadData();
+//   }, []);
+
+//   if (loading)
+//     return <div className="text-center py-20 text-gray-500">Loading...</div>;
+
+//   return (
+//     <div className="flex flex-col gap-16">
+//       <Hero data={data.hero} />
+//       <Analytics data={data.analytics} />
+//       <Features data={data.features} />
+//       <Testimonials data={data.testimonials} />
+//       <FAQs data={data.faqs} />
+//       <CTA data={data.cta} />
+//     </div>
+//   );
+// }
