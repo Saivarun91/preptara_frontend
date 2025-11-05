@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -14,8 +15,8 @@ interface Blog {
   category: string;
   author: string;
   date: string;
-  read_time: string;
-  image: string;
+  readTime: string;
+  image_url?: string; // optional for safety
 }
 
 export default function AdminBlogPage() {
@@ -27,13 +28,18 @@ export default function AdminBlogPage() {
     author: "",
     date: "",
     readTime: "",
-    image: "",
+    image_url: "", // ✅ same name as backend
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState("");
 
   const API_BASE = "http://127.0.0.1:8000/api/blogs/";
+
+  // ✅ Cloudinary Details
+  const CLOUD_NAME = "dhy0krkef";
+  const UPLOAD_PRESET = "preptara";
 
   // -------------------------
   // Fetch all blogs
@@ -54,10 +60,45 @@ export default function AdminBlogPage() {
   }, []);
 
   // -------------------------
-  // Handle form input change
+  // Handle input change
   // -------------------------
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // -------------------------
+  // Handle image upload to Cloudinary
+  // -------------------------
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setMessage("Uploading image...");
+
+    const imageData = new FormData();
+    imageData.append("file", file);
+    imageData.append("upload_preset", UPLOAD_PRESET);
+
+    try {
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+        method: "POST",
+        body: imageData,
+      });
+
+      const data = await res.json();
+      if (data.secure_url) {
+        setFormData((prev) => ({ ...prev, image_url: data.secure_url }));
+        setMessage("✅ Image uploaded successfully!");
+      } else {
+        setMessage("❌ Image upload failed!");
+      }
+    } catch (err) {
+      console.error("Cloudinary Upload Error:", err);
+      setMessage("❌ Image upload failed!");
+    } finally {
+      setUploading(false);
+    }
   };
 
   // -------------------------
@@ -73,16 +114,17 @@ export default function AdminBlogPage() {
         // UPDATE
         const res = await axios.put(`${API_BASE}${editingId}/update/`, formData);
         if (res.data.success) {
-          setMessage("Blog updated successfully ✅");
+          setMessage("✅ Blog updated successfully!");
           setEditingId(null);
         }
       } else {
         // CREATE
         const res = await axios.post(`${API_BASE}create/`, formData);
         if (res.data.success) {
-          setMessage("Blog created successfully ✅");
+          setMessage("✅ Blog created successfully!");
         }
       }
+
       setFormData({
         title: "",
         excerpt: "",
@@ -90,7 +132,7 @@ export default function AdminBlogPage() {
         author: "",
         date: "",
         readTime: "",
-        image: "",
+        image_url: "",
       });
       fetchBlogs();
     } catch (err) {
@@ -102,7 +144,7 @@ export default function AdminBlogPage() {
   };
 
   // -------------------------
-  // Edit Blog (prefill form)
+  // Edit Blog
   // -------------------------
   const handleEdit = (blog: Blog) => {
     setFormData({
@@ -111,8 +153,8 @@ export default function AdminBlogPage() {
       category: blog.category,
       author: blog.author,
       date: blog.date,
-      readTime: blog.read_time,
-      image: blog.image,
+      readTime: blog.readTime,
+      image_url: blog.image_url || "",
     });
     setEditingId(blog.id);
   };
@@ -125,7 +167,7 @@ export default function AdminBlogPage() {
     try {
       const res = await axios.delete(`${API_BASE}${id}/delete/`);
       if (res.data.success) {
-        setMessage("Blog deleted successfully 🗑️");
+        setMessage("🗑️ Blog deleted successfully!");
         fetchBlogs();
       }
     } catch (err) {
@@ -145,18 +187,20 @@ export default function AdminBlogPage() {
       author: "",
       date: "",
       readTime: "",
-      image: "",
+      image_url: "",
     });
   };
 
+  // -------------------------
+  // JSX UI
+  // -------------------------
   return (
     <div className="p-6">
       <h1 className="text-3xl font-semibold mb-6 text-center">📝 Admin Blog Management</h1>
 
-      {/* Status Message */}
       {message && <p className="text-center text-green-600 mb-4">{message}</p>}
 
-      {/* Form Section */}
+      {/* Blog Form */}
       <Card className="max-w-2xl mx-auto mb-10 shadow-md">
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-3 p-4">
@@ -201,15 +245,23 @@ export default function AdminBlogPage() {
               value={formData.readTime}
               onChange={handleChange}
             />
-            <Input
-              name="image"
-              placeholder="Image URL"
-              value={formData.image}
-              onChange={handleChange}
-            />
+
+            {/* ✅ Cloudinary Upload */}
+            <div>
+              <label className="block mb-1 font-medium">Upload Blog Image</label>
+              <Input type="file" accept="image/*" onChange={handleImageUpload} />
+              {uploading && <p className="text-sm text-blue-500">Uploading...</p>}
+              {formData.image_url && (
+                <img
+                  src={formData.image_url}
+                  alt="Uploaded preview"
+                  className="mt-2 w-full h-40 object-cover rounded-md"
+                />
+              )}
+            </div>
 
             <div className="flex justify-center gap-3 pt-4">
-              <Button type="submit" disabled={loading}>
+              <Button type="submit" disabled={loading || uploading}>
                 {loading ? "Saving..." : editingId ? "Update Blog" : "Create Blog"}
               </Button>
               {editingId && (
@@ -231,15 +283,22 @@ export default function AdminBlogPage() {
           blogs.map((blog) => (
             <Card key={blog.id} className="shadow-md">
               <CardContent className="p-4">
-                <img
-                  src={blog.image}
-                  alt={blog.title}
-                  className="w-full h-40 object-cover rounded-md mb-3"
-                />
+                {/* ✅ Safe image rendering */}
+                {blog.image_url ? (
+                  <img
+                    src={blog.image_url}
+                    alt={blog.title}
+                    className="w-full h-40 object-cover rounded-md mb-3"
+                  />
+                ) : (
+                  <div className="w-full h-40 bg-gray-100 flex items-center justify-center rounded-md mb-3 text-gray-500">
+                    No Image Available
+                  </div>
+                )}
                 <h3 className="text-xl font-semibold mb-2">{blog.title}</h3>
                 <p className="text-gray-600 mb-2">{blog.excerpt}</p>
                 <p className="text-sm text-gray-500">
-                  {blog.category} • {blog.read_time} • By {blog.author}
+                  {blog.category} • {blog.readTime} • By {blog.author}
                 </p>
                 <div className="flex gap-2 mt-4">
                   <Button variant="default" onClick={() => handleEdit(blog)}>

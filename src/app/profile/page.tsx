@@ -18,16 +18,26 @@ import {
   Save,
   X,
   Camera,
+  Book,
 } from "lucide-react";
 
+
 interface UserData {
+  id?: string;
   fullname: string;
   email: string;
   phone_number: string;
-  location: string;
   role?: string;
   avatar?: string;
+  enrolled_courses?: string[];
 }
+
+interface ProfileResponse {
+  success: boolean;
+  role: string;
+  profile: UserData;
+}
+
 
 const BACKEND_URL = "http://localhost:8000/api/users";
 
@@ -73,9 +83,10 @@ const Profile = () => {
           throw new Error(`Profile fetch failed: ${text}`);
         }
 
-        const data: UserData = await res.json();
-        setUserData(data);
-        setEditData(data);
+        const data: ProfileResponse = await res.json();
+        console.log("data:", data);
+        setUserData(data.profile);
+        setEditData(data.profile);
       } catch (err: any) {
         console.error(err);
         setError(err.message || "Something went wrong");
@@ -190,7 +201,7 @@ const Profile = () => {
                 { label: "Full Name", icon: User, key: "fullname" },
                 { label: "Email", icon: Mail, key: "email" },
                 { label: "Phone Number", icon: Phone, key: "phone_number" },
-                { label: "Location", icon: MapPin, key: "location" },
+                // { label: "Enrolled Courses", icon: Book, key: "enrolled_courses" },
               ].map((field, idx) => (
                 <div key={idx} className="space-y-2">
                   <Label className="flex items-center gap-2 text-gray-700">

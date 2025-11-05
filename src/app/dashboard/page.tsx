@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { motion } from "framer-motion";
 import {
   FiCalendar,
@@ -9,95 +8,153 @@ import {
   FiTrendingUp,
   FiAward,
   FiLogOut,
+  FiBookOpen,
 } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { useAuth } from "@/contexts/AuthContext";
+import axios from "axios";
 
-interface DashboardStats {
-  username: string;
-  total_tests: number;
-  best_score: number;
-  average_score: number;
-  unlocked_courses: number;
-}
-
-interface Test {
+interface TestAttempt {
   id: string;
   title: string;
   date: string;
   total_questions: number;
   answered: number;
-  status: "Completed" | "Pending" | "In Progress";
+  status: string;
+}
+
+interface EnrolledCourse {
+  id: string;
+  course_name: string;
+  price_paid: number;
+  enrolled_date: string;
+  expiry_date: string;
+  duration_months: number;
 }
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [tests, setTests] = useState<Test[]>([]);
-  const [filteredTests, setFilteredTests] = useState<Test[]>([]);
-  const [activeTab, setActiveTab] = useState("All");
+  const { user, logout, isLoggedIn, loading } = useAuth();
+  const [activeTab, setActiveTab] = useState("test-attempts");
   const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [dashboardStats, setDashboardStats] = useState({
+    enrolled_courses_count: 0,
+    attempts_count: 0,
+  });
+  const [tests, setTests] = useState<TestAttempt[]>([]);
 
-  // ✅ Fetch dashboard data
-  const fetchDashboard = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem("token");
-      const userId = localStorage.getItem("user_id");
+  const [courses, setCourses] = useState<EnrolledCourse[]>([]);
+  const [loadingStats, setLoadingStats] = useState(true);
+  const [loadingTests, setLoadingTests] = useState(true);
+  const [loadingCourses, setLoadingCourses] = useState(true);
+  console.log("tests : ",tests)
+  console.log("courses : ",courses)
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
 
-    //   if (!token || !userId) {
-    //     window.location.href = "/auth";
-    //     return;
-    //   }
+  // Fetch dashboard stats
+  useEffect(() => {
+    if (!isLoggedIn || !user) return;
 
-      const dashboardRes = await axios.post(
-        `http://127.0.0.1:8000/api/dashboard/user/${userId}/`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      if (dashboardRes.data.success) setStats(dashboardRes.data.dashboard);
-
-      const testsRes = await axios.get(
-        `http://127.0.0.1:8000/api/dashboard/tests/user/${userId}/`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      if (testsRes.data.success) {
-        setTests(testsRes.data.tests);
-        setFilteredTests(testsRes.data.tests);
+    const fetchDashboardStats = async () => {
+      try {
+        setLoadingStats(true);
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          `${baseUrl}/api/dashboard/stats/`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        if (response.data.success) {
+          setDashboardStats({
+            enrolled_courses_count: response.data.dashboard.enrolled_courses || 0,
+            attempts_count: response.data.dashboard.total_attempts || 0,
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching dashboard stats:", error);
+      } finally {
+        setLoadingStats(false);
       }
-    } catch (err: any) {
-      console.error("Error loading dashboard:", err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
+    fetchDashboardStats();
+  }, [isLoggedIn, user, baseUrl]);
+
+  // Fetch test attempts
   useEffect(() => {
-    fetchDashboard();
-    // Refresh dashboard every 30 seconds to get latest test results
-    const interval = setInterval(() => {
-      fetchDashboard();
-    }, 30000);
-    return () => clearInterval(interval);
-  }, []);
+    if (!isLoggedIn || !user) return;
 
-  // ✅ Filter logic
+    const fetchTestAttempts = async () => {
+      try {
+        setLoadingTests(true);
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          `${baseUrl}/api/dashboard/tests/`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        console.log("test res : ",response.data)
+        if (response.data.success) {
+          setTests(response.data.tests || []);
+        }
+      } catch (error) {
+        console.error("Error fetching test attempts:", error);
+      } finally {
+        setLoadingTests(false);
+      }
+    };
+
+    fetchTestAttempts();
+  }, [isLoggedIn, user, baseUrl]);
+
+  // Fetch enrolled courses
   useEffect(() => {
-    let filtered = tests;
-    if (activeTab !== "All") filtered = filtered.filter((t) => t.status === activeTab);
-    if (search.trim())
-      filtered = filtered.filter((t) =>
-        t.title.toLowerCase().includes(search.toLowerCase())
-      );
-    setFilteredTests(filtered);
-  }, [activeTab, search, tests]);
+    if (!isLoggedIn || !user) return;
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user_id");
-    window.location.href = "/auth";
-  };
+    const fetchEnrolledCourses = async () => {
+      try {
+        setLoadingCourses(true);
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          `${baseUrl}/api/enrollments/user/`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        if (response.data.success) {
+          // Transform the data to match the expected format
+          const transformedCourses = (response.data.data || []).map((enrollment: any) => ({
+            id: enrollment.id,
+            course_name: enrollment.category?.name || "Unknown Course",
+            price_paid: enrollment.payment?.amount || 0,
+            enrolled_date: enrollment.enrolled_date,
+            expiry_date: enrollment.expiry_date,
+            duration_months: enrollment.duration_months,
+          }));
+          setCourses(transformedCourses);
+        }
+      } catch (error) {
+        console.error("Error fetching enrolled courses:", error);
+      } finally {
+        setLoadingCourses(false);
+      }
+    };
+
+    fetchEnrolledCourses();
+  }, [isLoggedIn, user, baseUrl]);
+
+  // Filter tests based on search
+  const filteredTests = tests.filter((t) =>
+    t.title.toLowerCase().includes(search.toLowerCase())
+  );
+
+  // Filter courses based on search
+  const filteredCourses = courses.filter((c) =>
+    c.course_name.toLowerCase().includes(search.toLowerCase())
+  );
 
   if (loading)
     return (
@@ -106,151 +163,237 @@ export default function DashboardPage() {
       </div>
     );
 
+  if (!isLoggedIn || !user)
+    return (
+      <div className="flex justify-center items-center h-screen text-gray-600 text-lg">
+        Please log in to access your dashboard.
+      </div>
+    );
+
+  // // 🧩 ADMIN VIEW
+  // if (user.role === "admin") {
+  //   return (
+  //     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
+  //       <div className="flex justify-between items-center mb-10">
+  //         <h1 className="text-3xl font-bold text-gray-800">
+  //           Welcome, <span className="text-blue-600">{user.fullname || user.email}</span> 👋
+  //         </h1>
+  //         <Button
+  //           onClick={logout}
+  //           className="bg-red-500 hover:bg-red-600 text-white flex items-center gap-2"
+  //         >
+  //           <FiLogOut /> Logout
+  //         </Button>
+  //       </div>
+
+  //       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+  //         <motion.div className="bg-white rounded-2xl p-6 shadow-md border border-gray-100">
+  //           <FiFileText className="text-blue-500 text-3xl mb-2" />
+  //           <h2 className="text-lg font-semibold">Full Name</h2>
+  //           <p className="text-gray-600">{user.fullname || "N/A"}</p>
+  //         </motion.div>
+
+  //         <motion.div className="bg-white rounded-2xl p-6 shadow-md border border-gray-100">
+  //           <FiCalendar className="text-green-500 text-3xl mb-2" />
+  //           <h2 className="text-lg font-semibold">Email</h2>
+  //           <p className="text-gray-600">{user.email}</p>
+  //         </motion.div>
+
+  //         <motion.div className="bg-white rounded-2xl p-6 shadow-md border border-gray-100">
+  //           <FiTrendingUp className="text-purple-500 text-3xl mb-2" />
+  //           <h2 className="text-lg font-semibold">Phone Number</h2>
+  //           <p className="text-gray-600">{user.phone_number || "N/A"}</p>
+  //         </motion.div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
+
+  // 🧩 STUDENT VIEW
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-8">
-      {/* Header */}
       <div className="flex justify-between items-center mb-10">
         <div>
           <h1 className="text-3xl font-bold text-gray-800">
             Welcome back,{" "}
-            <span className="text-blue-600">{stats?.username || "User"}</span>
+            <span className="text-blue-600">{user.fullname || "Student"}</span>
           </h1>
           <p className="text-gray-500">
-            Track your progress and continue your learning journey 🚀
+            Track your learning journey 🚀
           </p>
         </div>
         <Button
-          onClick={handleLogout}
+          onClick={logout}
           className="bg-red-500 hover:bg-red-600 text-white flex items-center gap-2"
         >
           <FiLogOut /> Logout
         </Button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-        {[
-          {
-            icon: <FiFileText className="text-green-600 text-3xl" />,
-            label: "Total Tests",
-            value: stats?.total_tests || 0,
-          },
-          {
-            icon: <FiAward className="text-yellow-500 text-3xl" />,
-            label: "Best Score",
-            value: `${stats?.best_score || 0}%`,
-          },
-          {
-            icon: <FiTrendingUp className="text-blue-600 text-3xl" />,
-            label: "Average Score",
-            value: `${stats?.average_score || 0}%`,
-          },
-          {
-            icon: <FiAward className="text-purple-600 text-3xl" />,
-            label: "Courses Unlocked",
-            value: stats?.unlocked_courses || 0,
-          },
-        ].map((item, i) => (
-          <motion.div
-            key={i}
-            whileHover={{ scale: 1.05 }}
-            className="bg-white/80 backdrop-blur-lg border border-blue-100 rounded-2xl p-6 shadow-md flex flex-col justify-between transition-transform"
-          >
-            <div className="flex items-center gap-3 mb-3">
-              {item.icon}
-              <p className="text-gray-600 font-medium">{item.label}</p>
-            </div>
-            <p className="text-3xl font-bold text-gray-800">{item.value}</p>
-          </motion.div>
-        ))}
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          className="bg-white/80 border border-blue-100 rounded-2xl p-6 shadow-md"
+        >
+          <FiBookOpen className="text-blue-600 text-3xl mb-2" />
+          <p className="text-gray-600 font-medium">Number of Enrolled Courses</p>
+          <p className="text-lg font-bold text-gray-800">
+            {loadingStats ? "..." : dashboardStats.enrolled_courses_count}
+          </p>
+        </motion.div>
+
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          className="bg-white/80 border border-blue-100 rounded-2xl p-6 shadow-md"
+        >
+          <FiFileText className="text-green-600 text-3xl mb-2" />
+          <p className="text-gray-600 font-medium">No of Attempts</p>
+          <p className="text-lg font-bold text-gray-800">
+            {loadingStats ? "..." : tests.length}
+          </p>
+        </motion.div>
       </div>
 
-      {/* Tests Overview */}
+      {/* Tabs Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white/80 backdrop-blur-lg border border-blue-100 shadow-lg rounded-2xl p-6"
+        className="bg-white/80 border border-blue-100 shadow-lg rounded-2xl p-6"
       >
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-              <FiTrendingUp className="text-blue-600" /> Test Overview
-            </h2>
-            <p className="text-gray-500 text-sm">
-              View all your tests and progress in one place
-            </p>
-          </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="mb-6">
+            <TabsTrigger value="test-attempts">
+              Test Attempts ({tests.length})
+            </TabsTrigger>
+            <TabsTrigger value="enrolled-courses">
+              Enrolled Courses ({courses.length})
+            </TabsTrigger>
+          </TabsList>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList>
-              <TabsTrigger value="All">All ({tests.length})</TabsTrigger>
-              <TabsTrigger value="Completed">
-                Completed ({tests.filter((t) => t.status === "Completed").length})
-              </TabsTrigger>
-              <TabsTrigger value="In Progress">
-                In Progress (
-                {tests.filter((t) => t.status === "In Progress").length})
-              </TabsTrigger>
-              <TabsTrigger value="Pending">
-                Pending ({tests.filter((t) => t.status === "Pending").length})
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
+          <Input
+            placeholder="🔍 Search..."
+            className="mb-4 focus:ring-2 focus:ring-blue-400"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
 
-        <Input
-          placeholder="🔍 Search tests..."
-          className="mb-4 focus:ring-2 focus:ring-blue-400"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-
-        {filteredTests.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">
-            No tests found for this filter.
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {filteredTests.map((test) => (
-              <motion.div
-                key={test.id}
-                whileHover={{ scale: 1.02 }}
-                className="border border-blue-100 bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl p-4 flex justify-between items-center shadow-sm"
-              >
-                <div>
-                  <h3 className="font-semibold text-lg text-gray-800">
-                    {test.title}
-                  </h3>
-                  <div className="flex flex-wrap items-center text-gray-500 text-sm gap-4 mt-1">
-                    <span className="flex items-center gap-1">
-                      <FiCalendar /> {test.date}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <FiFileText /> {test.answered} / {test.total_questions} answered
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      test.status === "Completed"
-                        ? "bg-green-100 text-green-700"
-                        : test.status === "Pending"
-                        ? "bg-gray-100 text-gray-600"
-                        : "bg-yellow-100 text-yellow-700"
-                    }`}
+          {/* Test Attempts Tab */}
+          <TabsContent value="test-attempts">
+            {loadingTests ? (
+              <p className="text-gray-500 text-center py-8">Loading test attempts...</p>
+            ) : filteredTests.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">
+                No test attempts found.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {filteredTests.map((test) => (
+                  <motion.div
+                    key={test.id}
+                    whileHover={{ scale: 1.02 }}
+                    className="border border-blue-100 bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl p-4 flex justify-between items-center shadow-sm"
                   >
-                    {test.status}
-                  </span>
-                  <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                    Continue
-                  </Button>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        )}
+                    <div>
+                      <h3 className="font-semibold text-lg text-gray-800">
+                        {test.title}
+                      </h3>
+                      <div className="flex flex-wrap items-center text-gray-500 text-sm gap-4 mt-1">
+                        <span className="flex items-center gap-1">
+                          <FiCalendar /> {test.date}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <FiFileText /> {test.answered} / {test.total_questions} answered
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          test.status === "Completed"
+                            ? "bg-green-100 text-green-700"
+                            : test.status === "Pending"
+                            ? "bg-gray-100 text-gray-600"
+                            : "bg-yellow-100 text-yellow-700"
+                        }`}
+                      >
+                        {test.status}
+                      </span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Enrolled Courses Tab */}
+          <TabsContent value="enrolled-courses">
+            {loadingCourses ? (
+              <p className="text-gray-500 text-center py-8">Loading enrolled courses...</p>
+            ) : filteredCourses.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">
+                No enrolled courses found.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {filteredCourses.map((course) => (
+                  <motion.div
+                    key={course.id}
+                    whileHover={{ scale: 1.02 }}
+                    className="border border-blue-100 bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl p-4 shadow-sm"
+                  >
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg text-gray-800">
+                          {course.course_name}
+                        </h3>
+                        <div className="flex flex-wrap items-center text-gray-500 text-sm gap-4 mt-2">
+                          <span className="flex items-center gap-1">
+                            <FiCalendar /> Enrolled: {new Date(course.enrolled_date).toLocaleDateString()}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <FiCalendar /> Expires: {new Date(course.expiry_date).toLocaleDateString()}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <FiTrendingUp /> Duration: {course.duration_months} month(s)
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-gray-600">Price Paid</p>
+                        <p className="text-lg font-bold text-green-600">
+                          ₹{course.price_paid.toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                    {/* Timeline */}
+                    <div className="mt-3 pt-3 border-t border-blue-200">
+                      <div className="flex items-center justify-between text-xs text-gray-600">
+                        <span>Start Date: {new Date(course.enrolled_date).toLocaleDateString()}</span>
+                        <span className="text-blue-600">→</span>
+                        <span>End Date: {new Date(course.expiry_date).toLocaleDateString()}</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                        <div
+                          className="bg-blue-600 h-2 rounded-full"
+                          style={{
+                            width: `${Math.min(
+                              100,
+                              ((new Date().getTime() - new Date(course.enrolled_date).getTime()) /
+                                (new Date(course.expiry_date).getTime() - new Date(course.enrolled_date).getTime())) *
+                                100
+                            )}%`,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </motion.div>
     </div>
   );

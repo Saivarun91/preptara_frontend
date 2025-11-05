@@ -359,7 +359,7 @@ export default function QuestionManagement() {
           </button>
 
           {/* NEW: View CSVs for this test */}
-          <button
+          {/* <button
             onClick={() => {
               // open csv modal and ensure latest list
               fetchCsvFiles();
@@ -369,7 +369,7 @@ export default function QuestionManagement() {
             title="View uploaded CSV files for this test"
           >
             <FiUpload /> CSV Files
-          </button>
+          </button> */}
         </div>
       </div>
 

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -24,8 +25,8 @@ interface Blog {
   category: string;
   author: string;
   date: string;
-  read_time: string;
-  image: string;
+  readTime: string;
+  image_url: string; // ✅ Corrected field
 }
 
 export default function BlogPage() {
@@ -89,8 +90,7 @@ export default function BlogPage() {
               Blog
             </h1>
             <p className="text-lg text-muted-foreground mb-8">
-              Explore the latest in Cloud Computing, Python, Machine Learning,
-              Web Development, and JEE Mains.
+              Explore the latest insights, tutorials, and trends from the world of technology and education.  
             </p>
 
             {/* Search Bar */}
@@ -149,11 +149,18 @@ export default function BlogPage() {
                 >
                   <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-2 border-primary/10 h-full overflow-hidden">
                     <div className="relative aspect-video overflow-hidden">
-                      <img
-                        src={post.image}
-                        alt={post.title}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                      />
+                      {post.image_url ? (
+                        <img
+                          src={post.image_url}
+                          alt={post.title}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400">
+                          No Image
+                        </div>
+                      )}
+
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                       <Badge className="absolute top-4 left-4 bg-cyan-500 text-white">
                         {post.category}
@@ -175,16 +182,14 @@ export default function BlogPage() {
                         </div>
                         <div className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
-                          <span>{post.read_time}</span>
+                          <span>{post.readTime}</span>
                         </div>
                       </div>
 
                       <div className="flex items-center justify-between pt-4 border-t border-border">
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
                           <Calendar className="h-3 w-3" />
-                          <span>
-                            {new Date(post.date).toLocaleDateString()}
-                          </span>
+                          <span>{new Date(post.date).toLocaleDateString()}</span>
                         </div>
                         <Button
                           size="sm"

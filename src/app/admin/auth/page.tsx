@@ -294,7 +294,7 @@ interface ApiResponse {
   success?: boolean;
   message?: string;
   token?: string;
-  user?: { id: string; fullname?: string; email?: string };
+  admin?: { id: string; name?: string; email?: string; role?: string };
 }
 
 export default function AuthPage() {
@@ -330,11 +330,11 @@ export default function AuthPage() {
       console.log(res.data);
       if (res.data.token) {
         localStorage.setItem("token", res.data.token);
-        console.log(res.data.token);
-        localStorage.setItem("user_id", res.data.user?.id || "");
-        localStorage.setItem("user_name", res.data.user?.fullname || "Admin");
-
-        login(res.data.user?.fullname || "", res.data.user?.email || "", res.data.token);
+        console.log(res.data);
+        localStorage.setItem("admin_id", res.data.admin?.id || "");
+        localStorage.setItem("user_name", res.data.admin?.name || "Admin");
+        localStorage.setItem("role", res.data.admin?.role || "admin");
+        login(res.data.token);
 
         console.log("✅ Login success, redirecting...");
 

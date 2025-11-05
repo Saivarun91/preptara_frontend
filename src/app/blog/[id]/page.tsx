@@ -17,7 +17,7 @@ interface Blog {
   author: string;
   date: string;
   read_time: string;
-  image: string;
+  image_url: string;
 }
 
 export default function BlogDetailPage() {
@@ -35,9 +35,11 @@ export default function BlogDetailPage() {
     const fetchBlog = async () => {
       try {
         const res = await axios.get(`${API_BASE}${id}/`);
+        console.log("blog res : ",res.data)
         if (res.data.success) {
           setBlog(res.data.blog);
         }
+
       } catch (error) {
         console.error("Error fetching blog:", error);
       } finally {
@@ -82,7 +84,7 @@ export default function BlogDetailPage() {
           {/* Blog Header */}
           <Card className="overflow-hidden border-primary/10 mb-8">
             <img
-              src={blog.image}
+              src={blog.image_url}
               alt={blog.title}
               className="w-full h-80 object-cover"
             />
@@ -118,20 +120,9 @@ export default function BlogDetailPage() {
           <div className="prose prose-lg dark:prose-invert max-w-none">
             <p>
               {blog.excerpt}
-              <br />
-              <br />
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer
-              tincidunt, nulla sed egestas fringilla, ipsum urna vulputate nisi,
-              nec tincidunt justo dolor nec justo. In vulputate, libero id
-              volutpat fermentum, justo purus fermentum felis, vel consequat
-              nunc nisi non enim. Suspendisse potenti.
+              
             </p>
-            <p>
-              Vivamus pharetra leo ut justo posuere, eget feugiat lacus
-              malesuada. Ut sagittis, nisl ac ultrices mattis, lacus purus
-              consectetur est, eget luctus ligula eros ut massa. Donec sed
-              sapien purus. Maecenas nec risus eu velit consequat rhoncus.
-            </p>
+           
           </div>
 
           {/* Back to Blog List */}

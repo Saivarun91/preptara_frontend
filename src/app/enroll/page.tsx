@@ -14,9 +14,9 @@ interface Category {
 
 interface Student {
   id: string;
-  name: string;
+  fullname: string;
   email: string;
-  phone: string;
+  phone_number: string;
 }
 
 export default function EnrollmentPage() {
@@ -180,9 +180,9 @@ export default function EnrollmentPage() {
           }
         },
         prefill: {
-          name: student.name,
+          name: student.fullname,
           email: student.email,
-          contact: student.phone,
+          contact: student.phone_number,
         },
         theme: {
           color: "#2563eb",
@@ -270,9 +270,9 @@ export default function EnrollmentPage() {
         <Card className="shadow-lg border rounded-3xl">
           <CardContent className="p-6">
             <h2 className="text-2xl font-bold mb-6">Student Info</h2>
-            <p><strong>Name:</strong> {student.name}</p>
+            <p><strong>Name:</strong> {student.fullname}</p>
             <p><strong>Email:</strong> {student.email}</p>
-            <p><strong>Phone:</strong> {student.phone}</p>
+            <p><strong>Phone:</strong> {student.phone_number}</p>
           </CardContent>
         </Card>
 

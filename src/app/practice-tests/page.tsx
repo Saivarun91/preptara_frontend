@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext"; 
 
 export interface TestCategory {
   id: string;
@@ -13,6 +14,7 @@ export interface TestCategory {
 }
 
 export default function PracticeTestsPage() {
+  const { user, isLoggedIn } = useAuth();
   const [categories, setCategories] = useState<TestCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,6 +40,10 @@ export default function PracticeTestsPage() {
   const handleEnrollClick = (category: TestCategory) => {
     setSelectedCategory(category);
     setIsModalOpen(true);
+  };
+  const isEnrolled = (categoryId: string): boolean => {
+    if (!user || !user.enrolled_courses) return false;
+    return user.enrolled_courses.includes(categoryId);
   };
 
   // ✅ Redirect to enroll page when choosing unlock plan
@@ -78,12 +84,21 @@ export default function PracticeTestsPage() {
                       View Tests
                     </Button>
                   </Link>
-                  <Button
-                    onClick={() => handleEnrollClick(cat)}
-                    className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600"
-                  >
-                    Enroll
-                  </Button>
+                  {isEnrolled(cat.id) ? (
+                      <Button
+                        disabled
+                        className="w-full bg-gray-400 text-white py-2 rounded-lg cursor-not-allowed"
+                      >
+                        Already Enrolled
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => handleEnrollClick(cat)}
+                        className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600"
+                      >
+                        Enroll
+                      </Button>
+                    )}
                 </div>
               </CardContent>
             </Card>
