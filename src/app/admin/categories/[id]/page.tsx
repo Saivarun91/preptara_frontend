@@ -12,7 +12,7 @@ export interface AdminPracticeTest {
   id: string;
   slug: string;
   title: string;
-  questions: number; // ✅ corrected field name
+  questions: number;
   duration: number;
   avg_score?: number;
   attempts?: number;
@@ -37,11 +37,12 @@ export default function AdminCategoryTestsPage() {
     duration: "",
   });
 
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+
   // ✅ Fetch category and tests
   useEffect(() => {
     const fetchTests = async () => {
       try {
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
         const catRes = await fetch(`${API_BASE_URL}/api/categories/${id}/`);
         if (!catRes.ok) throw new Error("Category not found");
         const catData = await catRes.json();
@@ -51,21 +52,20 @@ export default function AdminCategoryTestsPage() {
         if (!testRes.ok) throw new Error("Failed to fetch tests");
         const testData: AdminPracticeTest[] = await testRes.json();
         setTests(testData);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        if (err instanceof Error) setError(err.message);
+        else setError("An unexpected error occurred");
       } finally {
         setLoading(false);
       }
     };
     fetchTests();
-  }, [id]);
+  }, [id, API_BASE_URL]);
 
   // ✅ Select test for bulk delete
   const handleSelectTest = (testId: string) => {
     setSelectedTests((prev) =>
-      prev.includes(testId)
-        ? prev.filter((id) => id !== testId)
-        : [...prev, testId]
+      prev.includes(testId) ? prev.filter((id) => id !== testId) : [...prev, testId]
     );
   };
 
@@ -76,7 +76,6 @@ export default function AdminCategoryTestsPage() {
 
     try {
       for (const testId of selectedTests) {
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
         await fetch(`${API_BASE_URL}/api/tests/${testId}/delete/`, {
           method: "DELETE",
         });
@@ -84,24 +83,24 @@ export default function AdminCategoryTestsPage() {
       setTests(tests.filter((t) => !selectedTests.includes(t.id)));
       setSelectedTests([]);
       alert("✅ Selected tests deleted successfully!");
-    } catch (err: any) {
-      alert(`❌ ${err.message}`);
+    } catch (err: unknown) {
+      if (err instanceof Error) alert(`❌ ${err.message}`);
+      else alert("❌ An unexpected error occurred");
     }
   };
 
   // ✅ Delete single test
   const handleDeleteTest = async (slug: string) => {
     if (!confirm("Are you sure you want to delete this test?")) return;
+
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
-      const res = await fetch(`${API_BASE_URL}/api/tests/${slug}/delete/`, {
-        method: "DELETE",
-      });
+      const res = await fetch(`${API_BASE_URL}/api/tests/${slug}/delete/`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete test");
       setTests(tests.filter((t) => t.slug !== slug));
       alert("✅ Test deleted successfully!");
-    } catch (err: any) {
-      alert(`❌ ${err.message}`);
+    } catch (err: unknown) {
+      if (err instanceof Error) alert(`❌ ${err.message}`);
+      else alert("❌ An unexpected error occurred");
     }
   };
 
@@ -117,7 +116,6 @@ export default function AdminCategoryTestsPage() {
     const slug = title.toLowerCase().trim().replace(/\s+/g, "-");
 
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
       const res = await fetch(`${API_BASE_URL}/api/tests/create/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -137,8 +135,9 @@ export default function AdminCategoryTestsPage() {
       setShowAddModal(false);
       setNewTest({ title: "", questions: "", duration: "" });
       alert("✅ Test added successfully!");
-    } catch (err: any) {
-      alert(`❌ ${err.message}`);
+    } catch (err: unknown) {
+      if (err instanceof Error) alert(`❌ ${err.message}`);
+      else alert("❌ An unexpected error occurred");
     }
   };
 
@@ -154,30 +153,25 @@ export default function AdminCategoryTestsPage() {
     if (!editingTest) return;
 
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
-      const res = await fetch(
-        `${API_BASE_URL}/api/tests/${editingTest.id}/update/`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title: editingTest.title,
-            questions: editingTest.questions,
-            duration: editingTest.duration,
-          }),
-        }
-      );
+      const res = await fetch(`${API_BASE_URL}/api/tests/${editingTest.id}/update/`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: editingTest.title,
+          questions: editingTest.questions,
+          duration: editingTest.duration,
+        }),
+      });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to update test");
 
-      setTests((prev) =>
-        prev.map((t) => (t.id === editingTest.id ? { ...t, ...data } : t))
-      );
+      setTests((prev) => prev.map((t) => (t.id === editingTest.id ? { ...t, ...data } : t)));
       setShowEditModal(false);
       alert("✅ Test updated successfully!");
-    } catch (err: any) {
-      alert(`❌ ${err.message}`);
+    } catch (err: unknown) {
+      if (err instanceof Error) alert(`❌ ${err.message}`);
+      else alert("❌ An unexpected error occurred");
     }
   };
 
@@ -186,15 +180,9 @@ export default function AdminCategoryTestsPage() {
   );
 
   if (loading)
-    return (
-      <p className="text-center py-20 text-lg font-semibold text-gray-500">
-        Loading tests...
-      </p>
-    );
+    return <p className="text-center py-20 text-lg font-semibold text-gray-500">Loading tests...</p>;
   if (error)
-    return (
-      <p className="text-center py-20 text-red-600 font-semibold">{error}</p>
-    );
+    return <p className="text-center py-20 text-red-600 font-semibold">{error}</p>;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-white to-blue-50 py-16 px-6 relative">
