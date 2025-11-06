@@ -88,10 +88,15 @@ const Profile = () => {
         console.log("data:", data);
         setUserData(data.profile);
         setEditData(data.profile);
-      } catch (err: any) {
-        console.error(err);
-        setError(err.message || "Something went wrong");
-      } finally {
+      } catch (err: unknown) {
+  console.error(err);
+  if (err instanceof Error) {
+    setError(err.message);
+  } else {
+    setError("Something went wrong");
+  }
+}
+ finally {
         setLoading(false);
       }
     };
@@ -198,26 +203,31 @@ const Profile = () => {
             <Separator />
 
             <CardContent className="pt-6 grid md:grid-cols-2 gap-6">
-              {[
-                { label: "Full Name", icon: User, key: "fullname" },
-                { label: "Email", icon: Mail, key: "email" },
-                { label: "Phone Number", icon: Phone, key: "phone_number" },
-                // { label: "Enrolled Courses", icon: Book, key: "enrolled_courses" },
-              ].map((field, idx) => (
-                <div key={idx} className="space-y-2">
-                  <Label className="flex items-center gap-2 text-gray-700">
-                    <field.icon className="h-4 w-4 text-blue-500" /> {field.label}
-                  </Label>
-                  {isEditing ? (
-                    <Input
-                      value={(editData as any)[field.key]}
-                      onChange={(e) => setEditData({ ...editData, [(field.key as keyof UserData)]: e.target.value })}
-                    />
-                  ) : (
-                    <p className="text-gray-800 font-medium">{(editData as any)[field.key]}</p>
-                  )}
-                </div>
-              ))}
+             {([
+  { label: "Full Name", icon: User, key: "fullname" },
+  { label: "Email", icon: Mail, key: "email" },
+  { label: "Phone Number", icon: Phone, key: "phone_number" },
+] as const).map((field) => {
+  type Key = typeof field.key;
+  return (
+    <div key={field.key} className="space-y-2">
+      <Label className="flex items-center gap-2 text-gray-700">
+        <field.icon className="h-4 w-4 text-blue-500" /> {field.label}
+      </Label>
+      {isEditing ? (
+        <Input
+          value={editData[field.key] ?? ""}
+          onChange={(e) =>
+            setEditData({ ...editData, [field.key]: e.target.value } as UserData)
+          }
+        />
+      ) : (
+        <p className="text-gray-800 font-medium">{editData[field.key]}</p>
+      )}
+    </div>
+  );
+})}
+
             </CardContent>
           </Card>
         </motion.div>
