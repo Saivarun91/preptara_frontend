@@ -2,7 +2,7 @@
 
 import { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import { FiTrash2, FiUpload, FiPlus, FiX } from "react-icons/fi";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { useParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -20,8 +20,12 @@ interface CsvFile {
   filename: string;
   uploaded_at?: string;
   question_count?: number;
-  // optionally backend may include question_ids: string[]
   question_ids?: string[];
+}
+
+interface ApiErrorResponse {
+  message?: string;
+  detail?: string;
 }
 
 export default function QuestionManagement() {
@@ -47,7 +51,6 @@ export default function QuestionManagement() {
   const [currentPage, setCurrentPage] = useState(1);
   const questionsPerPage = 10;
 
-  // --- NEW: CSV files state & modal
   const [csvFiles, setCsvFiles] = useState<CsvFile[]>([]);
   const [showCsvModal, setShowCsvModal] = useState(false);
   const [loadingCsvFiles, setLoadingCsvFiles] = useState(false);
@@ -61,9 +64,10 @@ export default function QuestionManagement() {
     questions_per_test: number,
     description?: string,
     passing_score: number = 60
-  ) => {
+  ): Promise<string | null> => {
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+      const API_BASE_URL =
+        process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
       const res = await axios.post(
         `${API_BASE_URL}/api/exams/create/`,
         {
@@ -84,50 +88,56 @@ export default function QuestionManagement() {
 
       alert(res.data.message || "Exam created successfully!");
       return res.data.exam_id;
-    } catch (err: any) {
-      console.error("Failed to create exam:", err);
-      alert(err.response?.data?.message || "Failed to create exam");
+    } catch (err: unknown) {
+      const axiosErr = err as AxiosError<ApiErrorResponse>;
+      console.error("Failed to create exam:", axiosErr);
+      alert(
+        axiosErr.response?.data?.message ||
+          axiosErr.message ||
+          "Failed to create exam"
+      );
       return null;
     }
   };
 
-  // ✅ FETCH QUESTIONS INITIALLY
-  const fetchQuestions = async () => {
+  // ✅ FETCH QUESTIONS
+  const fetchQuestions = async (): Promise<void> => {
     try {
       setLoadingQuestions(true);
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+      const API_BASE_URL =
+        process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
       const res = await axios.get(`${API_BASE_URL}/api/questions/`, {
         params: { category_id: id },
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("questions : ", res.data);
       setQuestions(res.data.questions || []);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Failed to fetch questions", err);
     } finally {
       setLoadingQuestions(false);
     }
   };
 
-  // --- NEW: fetch CSV files for this category/test only
-  const fetchCsvFiles = async () => {
+  // ✅ FETCH CSV FILES
+  const fetchCsvFiles = async (): Promise<void> => {
     try {
       setLoadingCsvFiles(true);
-      const token = localStorage.getItem("token"); // or however you store it
+      const localToken = localStorage.getItem("token");
 
       const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000"}/api/exams/questions/csv-files/`,
+        `${
+          process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000"
+        }/api/exams/questions/csv-files/`,
         {
           params: { category_id: id },
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${localToken}`,
           },
         }
       );
 
-      // expected shape: { csv_files: [...] }
       setCsvFiles(res.data.csv_files || []);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Failed to fetch csv files", err);
       setCsvFiles([]);
     } finally {
@@ -142,7 +152,7 @@ export default function QuestionManagement() {
   }, [id, token]);
 
   // ✅ CSV UPLOAD HANDLER
-  const handleCsvUpload = async (e: FormEvent) => {
+  const handleCsvUpload = async (e: FormEvent): Promise<void> => {
     e.preventDefault();
     if (!csvFile) {
       alert("Please select a CSV file first!");
@@ -155,7 +165,8 @@ export default function QuestionManagement() {
 
     try {
       setUploading(true);
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+      const API_BASE_URL =
+        process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
       const res = await axios.post(
         `${API_BASE_URL}/api/exams/questions/upload-csv/`,
         formData,
@@ -167,36 +178,45 @@ export default function QuestionManagement() {
         }
       );
       alert(res.data.message || "CSV uploaded successfully");
-      // refresh questions and csv files to reflect new upload
       await fetchQuestions();
       await fetchCsvFiles();
-    } catch (err: any) {
-      alert(err.response?.data?.message || "Upload failed");
+    } catch (err: unknown) {
+      const axiosErr = err as AxiosError<ApiErrorResponse>;
+      alert(
+        axiosErr.response?.data?.message ||
+          axiosErr.message ||
+          "Upload failed"
+      );
     } finally {
       setUploading(false);
       setCsvFile(null);
     }
   };
 
-  // ✅ DELETE SINGLE QUESTION (fixed)
-  const handleDelete = async (qid: string) => {
+  // ✅ DELETE SINGLE QUESTION
+  const handleDelete = async (qid: string): Promise<void> => {
     if (!confirm("Are you sure you want to delete this question?")) return;
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+      const API_BASE_URL =
+        process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
       await axios.delete(`${API_BASE_URL}/api/exams/questions/bulk-delete/`, {
         headers: { Authorization: `Bearer ${token}` },
-        data: { question_ids: [qid] }, // ✅ fixed: delete single question
+        data: { question_ids: [qid] },
       });
       setQuestions((prev) => prev.filter((q) => q.id !== qid));
       alert("Question deleted successfully!");
-    } catch (err: any) {
-      console.error(err);
-      alert(err.response?.data?.message || "Failed to delete question");
+    } catch (err: unknown) {
+      const axiosErr = err as AxiosError<ApiErrorResponse>;
+      alert(
+        axiosErr.response?.data?.message ||
+          axiosErr.message ||
+          "Failed to delete question"
+      );
     }
   };
 
   // ✅ BULK DELETE QUESTIONS
-  const handleBulkDelete = async () => {
+  const handleBulkDelete = async (): Promise<void> => {
     if (selectedQuestions.length === 0) {
       alert("Please select at least one question to delete!");
       return;
@@ -206,7 +226,8 @@ export default function QuestionManagement() {
       return;
 
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+      const API_BASE_URL =
+        process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
       const res = await axios.delete(
         `${API_BASE_URL}/api/exams/questions/bulk-delete/`,
         {
@@ -223,21 +244,27 @@ export default function QuestionManagement() {
         prev.filter((q) => !selectedQuestions.includes(q.id))
       );
       setSelectedQuestions([]);
-    } catch (err: any) {
-      console.error(err);
-      alert(err.response?.data?.message || "Bulk delete failed");
+    } catch (err: unknown) {
+      const axiosErr = err as AxiosError<ApiErrorResponse>;
+      alert(
+        axiosErr.response?.data?.message ||
+          axiosErr.message ||
+          "Bulk delete failed"
+      );
     }
   };
 
-  // --- NEW: Delete CSV file (and its questions)
-  const handleDeleteCsv = async (csvId: string) => {
-    if (!confirm("Delete this CSV and its questions? This cannot be undone.")) return;
+  // ✅ DELETE CSV FILE
+  const handleDeleteCsv = async (csvId: string): Promise<void> => {
+    if (!confirm("Delete this CSV and its questions? This cannot be undone."))
+      return;
 
     try {
       setDeletingCsvId(csvId);
-      // assume delete endpoint is: DELETE /api/exams/questions/csv-files/{csvId}/
       const res = await axios.delete(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000"}/api/exams/questions/csv-files/${csvId}/`,
+        `${
+          process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000"
+        }/api/exams/questions/csv-files/${csvId}/`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -245,33 +272,35 @@ export default function QuestionManagement() {
         }
       );
 
-      // If backend returns deleted_question_ids, remove them locally.
       const deletedIds: string[] | undefined = res.data?.deleted_question_ids;
       if (Array.isArray(deletedIds) && deletedIds.length > 0) {
         setQuestions((prev) => prev.filter((q) => !deletedIds.includes(q.id)));
       } else {
-        // otherwise refresh the questions list to reflect backend deletion
         await fetchQuestions();
       }
 
-      // refresh csv files list too
       await fetchCsvFiles();
 
       alert(res.data.message || "CSV deleted successfully");
-    } catch (err: any) {
-      console.error("Failed to delete csv file", err);
-      alert(err.response?.data?.message || "Failed to delete CSV file");
+    } catch (err: unknown) {
+      const axiosErr = err as AxiosError<ApiErrorResponse>;
+      alert(
+        axiosErr.response?.data?.message ||
+          axiosErr.message ||
+          "Failed to delete CSV file"
+      );
     } finally {
       setDeletingCsvId(null);
     }
   };
 
-  // ✅ ADD QUESTION SUBMIT
-  const handleAddQuestionSubmit = async (e: FormEvent) => {
+  // ✅ ADD QUESTION
+  const handleAddQuestionSubmit = async (e: FormEvent): Promise<void> => {
     e.preventDefault();
 
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+      const API_BASE_URL =
+        process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
       const res = await axios.post(
         `${API_BASE_URL}/api/questions/create/`,
         {
@@ -296,9 +325,13 @@ export default function QuestionManagement() {
         correct_answers: [],
         explanation: "",
       });
-    } catch (err: any) {
-      console.error(err);
-      alert(err.response?.data?.message || "Failed to add question");
+    } catch (err: unknown) {
+      const axiosErr = err as AxiosError<ApiErrorResponse>;
+      alert(
+        axiosErr.response?.data?.message ||
+          axiosErr.message ||
+          "Failed to add question"
+      );
     }
   };
 
