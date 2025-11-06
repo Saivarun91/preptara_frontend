@@ -126,14 +126,28 @@ export default function DashboardPage() {
         );
         if (response.data.success) {
           // Transform the data to match the expected format
-          const transformedCourses = (response.data.data || []).map((enrollment: any) => ({
-            id: enrollment.id,
-            course_name: enrollment.category?.name || "Unknown Course",
-            price_paid: enrollment.payment?.amount || 0,
-            enrolled_date: enrollment.enrolled_date,
-            expiry_date: enrollment.expiry_date,
-            duration_months: enrollment.duration_months,
-          }));
+          interface EnrollmentResponse {
+  id: string;
+  category?: {
+    name?: string;
+  };
+  payment?: {
+    amount?: number;
+  };
+  enrolled_date: string;
+  expiry_date: string;
+  duration_months: number;
+}
+
+          const transformedCourses = (response.data.data || []).map((enrollment: EnrollmentResponse) => ({
+  id: enrollment.id,
+  course_name: enrollment.category?.name || "Unknown Course",
+  price_paid: enrollment.payment?.amount || 0,
+  enrolled_date: enrollment.enrolled_date,
+  expiry_date: enrollment.expiry_date,
+  duration_months: enrollment.duration_months,
+}));
+
           setCourses(transformedCourses);
         }
       } catch (error) {
