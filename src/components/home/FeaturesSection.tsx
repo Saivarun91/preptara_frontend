@@ -15,6 +15,7 @@ import {
   Zap,
   Target,
   BookOpen,
+  LucideIcon,
 } from "lucide-react";
 
 // Type definitions for better TypeScript support
@@ -26,7 +27,7 @@ interface Feature {
 }
 
 // Map string icon names from backend to Lucide components
-const iconMap: Record<string, any> = {
+const iconMap: Record<string, LucideIcon> = {
   Brain,
   BarChart3,
   Users,
