@@ -7,8 +7,33 @@ import { motion } from "framer-motion";
 import axios from "axios";
 import { useAuth } from "@/contexts/AuthContext";
 
+// ✅ Define TypeScript interfaces for your analytics data
+interface EnrollmentPerCourse {
+  course: string;
+  students: number;
+}
+
+interface RevenuePerCourse {
+  course: string;
+  revenue: number;
+}
+
+interface TopCourse {
+  course: string;
+  students: number;
+}
+
+interface AnalyticsData {
+  success: boolean;
+  totalCourses: number;
+  activeCourses: number;
+  enrollmentPerCourse: EnrollmentPerCourse[];
+  revenuePerCourse: RevenuePerCourse[];
+  topCourses: TopCourse[];
+}
+
 export default function AnalyticsPage() {
-  const [analyticsData, setAnalyticsData] = useState<any>(null);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const { token } = useAuth(); // ✅ Admin JWT token
@@ -19,7 +44,7 @@ export default function AnalyticsPage() {
 
       try {
         const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
-        const response = await axios.get(
+        const response = await axios.get<AnalyticsData>(
           `${API_BASE_URL}/api/categories/analytics/`,
           {
             headers: {
@@ -29,8 +54,11 @@ export default function AnalyticsPage() {
           }
         );
         setAnalyticsData(response.data);
-      } catch (err: any) {
-        setError(err.response?.data?.error || "Failed to fetch analytics");
+      } catch (err: unknown) {
+        const message = axios.isAxiosError(err)
+          ? err.response?.data?.error
+          : "Failed to fetch analytics";
+        setError(message);
       } finally {
         setLoading(false);
       }
@@ -71,7 +99,7 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-gray-900">
-              {analyticsData.totalCourses ?? 0}
+              {analyticsData.totalCourses}
             </p>
           </CardContent>
         </Card>
@@ -84,7 +112,7 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-gray-900">
-              {analyticsData.activeCourses ?? 0}
+              {analyticsData.activeCourses}
             </p>
           </CardContent>
         </Card>
@@ -99,7 +127,7 @@ export default function AnalyticsPage() {
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-2 gap-4">
-            {analyticsData.enrollmentPerCourse?.map((course: any, idx: number) => (
+            {analyticsData.enrollmentPerCourse.map((course, idx) => (
               <div
                 key={idx}
                 className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
@@ -123,7 +151,7 @@ export default function AnalyticsPage() {
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-2 gap-4">
-            {analyticsData.revenuePerCourse?.map((course: any, idx: number) => (
+            {analyticsData.revenuePerCourse.map((course, idx) => (
               <div
                 key={idx}
                 className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
@@ -144,7 +172,7 @@ export default function AnalyticsPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {analyticsData.topCourses?.map((course: any, idx: number) => (
+          {analyticsData.topCourses.map((course, idx) => (
             <div
               key={idx}
               className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 mb-2"
