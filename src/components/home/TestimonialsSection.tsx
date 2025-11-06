@@ -381,7 +381,7 @@ export default function TestimonialsSection() {
                         <div className="relative">
                           <Quote className="h-10 w-10 text-primary/30 mb-3" />
                           <p className="text-base md:text-lg text-foreground/90 mb-4 italic leading-relaxed">
-                            "{testimonial.text}"
+                            &quot;{testimonial.text}&quot;
                           </p>
 
                           <div className="flex items-center gap-6">
