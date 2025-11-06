@@ -33,22 +33,25 @@ export default function AdminCategoriesPage() {
   // ------------------------
   // FETCH CATEGORIES
   // ------------------------
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await fetch(`${BASE_URL}/`);
-        if (!res.ok) throw new Error(`Failed to fetch categories: ${res.status}`);
-        const data: AdminCategory[] = await res.json();
-        setCategories(data);
-        setFilteredCategories(data);
-      } catch (err: any) {
-        setError(err.message || "Failed to fetch categories");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCategories();
-  }, []);
+ // 1️⃣ Fetch categories
+useEffect(() => {
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/`);
+      if (!res.ok) throw new Error(`Failed to fetch categories: ${res.status}`);
+      const data: AdminCategory[] = await res.json();
+      setCategories(data);
+      setFilteredCategories(data);
+    } catch (err: unknown) {   // ✅ changed here
+      const error = err instanceof Error ? err.message : "Failed to fetch categories";
+      setError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchCategories();
+}, []);
+
 
   // ------------------------
   // SEARCH FUNCTIONALITY
@@ -67,74 +70,80 @@ export default function AdminCategoriesPage() {
   // ------------------------
   // ADD / UPDATE CATEGORY
   // ------------------------
-  const handleSaveCategory = async () => {
-    if (!categoryData.name.trim()) {
-      alert("Please enter a category name");
-      return;
+// 2️⃣ handleSaveCategory
+const handleSaveCategory = async () => {
+  if (!categoryData.name.trim()) {
+    alert("Please enter a category name");
+    return;
+  }
+
+  const url = editMode
+    ? `${BASE_URL}/${editId}/update/`
+    : `${BASE_URL}/create/`;
+  const method = editMode ? "PUT" : "POST";
+
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(categoryData),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Failed to save category: ${res.status} - ${errText}`);
     }
 
-    const url = editMode
-      ? `${BASE_URL}/${editId}/update/`
-      : `${BASE_URL}/create/`;
-    const method = editMode ? "PUT" : "POST";
+    const newCategory: AdminCategory = await res.json();
 
-    try {
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(categoryData),
-      });
-
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(`Failed to save category: ${res.status} - ${errText}`);
-      }
-
-      const newCategory = await res.json();
-
-      if (editMode) {
-        setCategories((prev) =>
-          prev.map((c) => (c.id === editId ? newCategory : c))
-        );
-        setFilteredCategories((prev) =>
-          prev.map((c) => (c.id === editId ? newCategory : c))
-        );
-        alert("✅ Category updated successfully!");
-      } else {
-        setCategories((prev) => [...prev, newCategory]);
-        setFilteredCategories((prev) => [...prev, newCategory]);
-        alert("✅ Category added successfully!");
-      }
-
-      setShowModal(false);
-      setEditMode(false);
-      setCategoryData({ name: "", description: "" });
-      setEditId(null);
-    } catch (err: any) {
-      alert(`❌ ${err.message}`);
+    if (editMode) {
+      setCategories((prev) =>
+        prev.map((c) => (c.id === editId ? newCategory : c))
+      );
+      setFilteredCategories((prev) =>
+        prev.map((c) => (c.id === editId ? newCategory : c))
+      );
+      alert("✅ Category updated successfully!");
+    } else {
+      setCategories((prev) => [...prev, newCategory]);
+      setFilteredCategories((prev) => [...prev, newCategory]);
+      alert("✅ Category added successfully!");
     }
-  };
+
+    setShowModal(false);
+    setEditMode(false);
+    setCategoryData({ name: "", description: "" });
+    setEditId(null);
+  } catch (err: unknown) {   // ✅ changed here
+    const message = err instanceof Error ? err.message : "Unknown error";
+    alert(`❌ ${message}`);
+  }
+};
+
 
   // ------------------------
   // DELETE SINGLE CATEGORY
   // ------------------------
-  const handleDeleteCategory = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this category?")) return;
+// 3️⃣ handleDeleteCategory
+const handleDeleteCategory = async (id: string) => {
+  if (!confirm("Are you sure you want to delete this category?")) return;
 
-    try {
-      const res = await fetch(`${BASE_URL}/${id}/delete/`, { method: "DELETE" });
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(`Failed to delete: ${res.status} - ${errText}`);
-      }
-
-      setCategories((prev) => prev.filter((c) => c.id !== id));
-      setFilteredCategories((prev) => prev.filter((c) => c.id !== id));
-      alert("✅ Category deleted successfully!");
-    } catch (err: any) {
-      alert(`❌ ${err.message}`);
+  try {
+    const res = await fetch(`${BASE_URL}/${id}/delete/`, { method: "DELETE" });
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Failed to delete: ${res.status} - ${errText}`);
     }
-  };
+
+    setCategories((prev) => prev.filter((c) => c.id !== id));
+    setFilteredCategories((prev) => prev.filter((c) => c.id !== id));
+    alert("✅ Category deleted successfully!");
+  } catch (err: unknown) {   // ✅ changed here
+    const message = err instanceof Error ? err.message : "Unknown error";
+    alert(`❌ ${message}`);
+  }
+};
+
 
   // ------------------------
   // EDIT CATEGORY
@@ -158,28 +167,30 @@ export default function AdminCategoriesPage() {
   // ------------------------
   // BULK DELETE CATEGORIES
   // ------------------------
-  const handleBulkDelete = async () => {
-    if (selectedIds.length === 0) {
-      alert("Please select at least one category to delete.");
-      return;
+ // 4️⃣ handleBulkDelete
+const handleBulkDelete = async () => {
+  if (selectedIds.length === 0) {
+    alert("Please select at least one category to delete.");
+    return;
+  }
+
+  if (!confirm(`Are you sure you want to delete ${selectedIds.length} categories?`))
+    return;
+
+  try {
+    for (const id of selectedIds) {
+      await fetch(`${BASE_URL}/${id}/delete/`, { method: "DELETE" });
     }
 
-    if (!confirm(`Are you sure you want to delete ${selectedIds.length} categories?`))
-      return;
-
-    try {
-      for (const id of selectedIds) {
-        await fetch(`${BASE_URL}/${id}/delete/`, { method: "DELETE" });
-      }
-
-      setCategories((prev) => prev.filter((c) => !selectedIds.includes(c.id)));
-      setFilteredCategories((prev) => prev.filter((c) => !selectedIds.includes(c.id)));
-      setSelectedIds([]);
-      alert("✅ Selected categories deleted successfully!");
-    } catch (err: any) {
-      alert(`❌ ${err.message}`);
-    }
-  };
+    setCategories((prev) => prev.filter((c) => !selectedIds.includes(c.id)));
+    setFilteredCategories((prev) => prev.filter((c) => !selectedIds.includes(c.id)));
+    setSelectedIds([]);
+    alert("✅ Selected categories deleted successfully!");
+  } catch (err: unknown) {   // ✅ changed here
+    const message = err instanceof Error ? err.message : "Unknown error";
+    alert(`❌ ${message}`);
+  }
+};
 
   // ------------------------
   // CONDITIONAL UI STATES
