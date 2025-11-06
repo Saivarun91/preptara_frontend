@@ -43,18 +43,28 @@ useEffect(() => {
       // ✅ Avoid 'any' — first parse as unknown, then assert as your type
       const data = (await res.json()) as unknown;
 
-      if (Array.isArray(data)) {
-        const formatted = data.map((cat) => ({
-          id: (cat as any).id ?? (cat as any)._id ?? "",
-          name: (cat as any).name ?? "",
-          description: (cat as any).description ?? "",
-        })) as AdminCategory[];
+    interface RawCategory {
+  id?: string;
+  _id?: string;
+  name?: string;
+  description?: string;
+}
 
-        setCategories(formatted);
-        setFilteredCategories(formatted);
-      } else {
-        throw new Error("Unexpected response format");
-      }
+if (Array.isArray(data)) {
+  const formatted: AdminCategory[] = (data as unknown as RawCategory[]).map((cat) => ({
+    id: cat.id ?? cat._id ?? "",
+    name: cat.name ?? "",
+    description: cat.description ?? "",
+  }));
+
+  setCategories(formatted);
+  setFilteredCategories(formatted);
+} else {
+  throw new Error("Unexpected response format");
+}
+
+
+      
     } catch (err: unknown) {
       const error = err instanceof Error ? err.message : "Failed to fetch categories";
       setError(error);
