@@ -47,44 +47,49 @@ export default function AdminSettingsPage() {
   }, []);
 
   // ✅ Common reusable function to update settings
-  const updateSettings = async (
-    updatedFields: Record<string, any>,
-    successMessage: string
-  ) => {
-    try {
-      const payload = {
-        site_name: siteName,
-        admin_email: adminEmail,
-        email_notifications: emailNotifications,
-        maintenance_mode: maintenanceMode,
-        default_user_role: defaultUserRole,
-        session_timeout: sessionTimeout,
-        ...updatedFields, // override only the changed fields
-      };
+type SettingsUpdate = {
+  site_name?: string;
+  admin_email?: string;
+  email_notifications?: boolean;
+  maintenance_mode?: boolean;
+  default_user_role?: string;
+  session_timeout?: number;
+};
 
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
-      const res = await axios.post(
-        `${API_BASE_URL}/api/settings/update/`,
-        payload,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+const updateSettings = async (
+  updatedFields: SettingsUpdate,
+  successMessage: string
+) => {
+  try {
+    const payload = {
+      site_name: siteName,
+      admin_email: adminEmail,
+      email_notifications: emailNotifications,
+      maintenance_mode: maintenanceMode,
+      default_user_role: defaultUserRole,
+      session_timeout: sessionTimeout,
+      ...updatedFields,
+    };
 
-      if (res.data.success) {
-        // ✅ Show the emoji with message as JSX so it doesn't get stripped
-        toast.success(<div className="text-green-600 font-medium">{successMessage}</div>);
-      } else {
-        toast.error(res.data.message || "⚠️ Failed to update settings");
-      }
-    } catch (err) {
-      console.error("Error updating settings:", err);
-      toast.error("❌ Something went wrong while saving");
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+    const res = await axios.post(`${API_BASE_URL}/api/settings/update/`, payload, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+
+    if (res.data.success) {
+      toast.success(<div className="text-green-600 font-medium">{successMessage}</div>);
+    } else {
+      toast.error(res.data.message || "⚠️ Failed to update settings");
     }
-  };
+  } catch (err) {
+    console.error("Error updating settings:", err);
+    toast.error("❌ Something went wrong while saving");
+  }
+};
+
 
   return (
     <div className="p-6 flex flex-col gap-6">
