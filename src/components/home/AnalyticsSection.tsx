@@ -83,8 +83,9 @@ export default function AnalyticsSection({ data }: AnalyticsSectionProps) {
         {/* Stats Grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-10 max-w-6xl mx-auto">
           {stats.map((stat, i) => {
-            const IconComponent =
-              (LucideIcons as any)[stat.icon] || LucideIcons.BarChart2;
+const iconName = stat.icon as keyof typeof LucideIcons;
+const IconComponent = LucideIcons[iconName] || LucideIcons.BarChart2;
+
 
             return (
               <motion.div
