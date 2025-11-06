@@ -108,7 +108,7 @@ const About = () => {
                   </div>
                   <h2 className="text-2xl font-bold mb-4 text-center md:text-left">Our Vision</h2>
                   <p className="text-muted-foreground leading-relaxed text-center md:text-left">
-                    To become India's most trusted and comprehensive platform for competitive
+                    To become India&apos;s most trusted and comprehensive platform for competitive
                     exam preparation, helping millions of students transform their aspirations
                     into achievements through technology and innovation.
                   </p>
@@ -240,7 +240,7 @@ const About = () => {
                   CAT, and many other competitive examinations.
                 </p>
                 <p className="text-muted-foreground">
-                  Our journey has just begun, and we're committed to continuously evolving our
+                  Our journey has just begun, and we&apos;re committed to continuously evolving our
                   platform to meet the changing needs of students and the education landscape.
                 </p>
               </motion.div>
@@ -267,7 +267,7 @@ const About = () => {
                     {/* Quote Text */}
                     <div className="flex-1 text-center md:text-left">
                       <blockquote className="text-2xl md:text-3xl font-semibold text-blue-600 mb-3">
-                        "Empowering learners. Inspiring success."
+                        &quotEmpowering learners. Inspiring success.&quot
                       </blockquote>
                       <p className="text-blue-400 font-medium">— PrepTara Team</p>
                     </div>
