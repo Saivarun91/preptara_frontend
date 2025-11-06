@@ -45,68 +45,74 @@ export default function HeroUploader() {
   }, []);
 
   // 2️⃣ Upload image to Cloudinary
-  const handleImageUpload = async (e: any) => {
-    const file = e.target.files[0];
-    if (!file) return;
+ // ✅ Upload image to Cloudinary
+const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
 
-    setLoading(true);
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", UPLOAD_PRESET);
+  setLoading(true);
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", UPLOAD_PRESET);
 
-    try {
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+  try {
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+      {
         method: "POST",
         body: formData,
-      });
-      const data = await res.json();
-      setImageUrl(data.secure_url);
-      setMessage("✅ Image uploaded successfully!");
-    } catch (err) {
-      console.error("Upload failed", err);
-      setMessage("❌ Image upload failed!");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 3️⃣ Submit form (create or update)
-  const handleSubmit = async (e: any) => {
-    e.preventDefault();
-
-    if (!title || !imageUrl) {
-      setMessage("⚠️ Title and Image are required!");
-      return;
-    }
-
-    try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
-      const url = heroId
-        ? `${API_BASE_URL}/api/home/hero/update/${heroId}/`
-        : `${API_BASE_URL}/api/home/hero/add/`;
-
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          subtitle,
-          search_placeholder: searchPlaceholder,
-          background_image_url: imageUrl,
-        }),
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        setMessage(heroId ? "🎉 Hero section updated!" : "🎉 Hero section created!");
-      } else {
-        setMessage(data.message || "❌ Failed to save hero section.");
       }
-    } catch (err) {
-      console.error(err);
-      setMessage("❌ Error connecting to backend!");
+    );
+    const data = await res.json();
+    setImageUrl(data.secure_url);
+    setMessage("✅ Image uploaded successfully!");
+  } catch (err) {
+    console.error("Upload failed", err);
+    setMessage("❌ Image upload failed!");
+  } finally {
+    setLoading(false);
+  }
+};
+
+// ✅ Submit form (create or update)
+const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+
+  if (!title || !imageUrl) {
+    setMessage("⚠️ Title and Image are required!");
+    return;
+  }
+
+  try {
+    const API_BASE_URL =
+      process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+    const url = heroId
+      ? `${API_BASE_URL}/api/home/hero/update/${heroId}/`
+      : `${API_BASE_URL}/api/home/hero/add/`;
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title,
+        subtitle,
+        search_placeholder: searchPlaceholder,
+        background_image_url: imageUrl,
+      }),
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      setMessage(heroId ? "🎉 Hero section updated!" : "🎉 Hero section created!");
+    } else {
+      setMessage(data.message || "❌ Failed to save hero section.");
     }
-  };
+  } catch (err) {
+    console.error(err);
+    setMessage("❌ Error connecting to backend!");
+  }
+};
+
 
   return (
     <div className="max-w-xl mx-auto mt-16 bg-white rounded-2xl shadow-xl border border-gray-100 p-8 transition-all">
