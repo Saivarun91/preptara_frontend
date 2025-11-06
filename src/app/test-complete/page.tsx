@@ -25,7 +25,7 @@ interface TestCompleteProps {
   timeTaken: string;
 }
 
-const TestComplete: React.FC<TestCompleteProps> = ({
+export default function TestComplete({
   testData,
   questions,
   answers,
