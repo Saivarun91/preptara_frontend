@@ -2,16 +2,25 @@
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
+// Define a type for each question
+interface Question {
+  id: number;
+  question_text: string;
+  options: string[];
+  correct_answers?: number[];
+  [key: string]: unknown; // if you expect extra fields
+}
+
 // Define types for the props
 interface TestCompleteProps {
   testData: {
     id: number;
     title: string;
     duration?: number;
-    [key: string]: any;
+    [key: string]: unknown;
   };
-  questions: Array<any>;
-  answers: { [key: number]: number };
+  questions: Question[];
+  answers: Record<number, number>;
   score: number;
   timeTaken: string;
 }
