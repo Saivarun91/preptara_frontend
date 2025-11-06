@@ -15,6 +15,12 @@ export interface PracticeTest {
   avg_score?: number;
   attempts?: number;
 }
+interface Category {
+  id: string;
+  name: string;
+  description?: string;
+}
+
 
 export default function CategoryTestsPage() {
   const { id } = useParams();
@@ -27,7 +33,8 @@ export default function CategoryTestsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [selectedTestId, setSelectedTestId] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<any>(null);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+
 
   useEffect(() => {
     const fetchTests = async () => {
@@ -63,8 +70,12 @@ export default function CategoryTestsPage() {
         if (!testRes.ok) throw new Error("Failed to fetch tests");
         const testData: PracticeTest[] = await testRes.json();
         setTests(testData);
-      } catch (err: any) {
-        setError(err.message);
+} catch (err: unknown) {
+  if (err instanceof Error) {
+    setError(err.message);
+  } else {
+    setError("An unexpected error occurred.");
+  }
       } finally {
         setLoading(false);
       }
