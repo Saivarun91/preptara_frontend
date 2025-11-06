@@ -48,14 +48,22 @@ export default function EnrollmentsPage() {
       if (!res.ok) throw new Error("Failed to fetch enrollments");
       const result = await res.json();
 
-      // Add `status` dynamically (active/expired)
-      const today = new Date();
-      const updatedData: Enrollment[] = (result.data as Enrollment[]).map((item) => ({
+
+// Add `status` dynamically (active/expired)
+const today = new Date();
+
+// 👇 Define a safe type for raw backend items
+interface RawEnrollment extends Partial<Enrollment> {
+  _id?: string;
+}
+
+const updatedData: Enrollment[] = (result.data as unknown as RawEnrollment[]).map((item) => ({
   ...item,
-  id: item.id || (item as any)._id || "", // _id fallback only if your backend uses Mongo
-  course_name: item.category?.name || item.course_name || "Unknown Course",
+  id: item.id ?? item._id ?? "", // ✅ no `any`
+  course_name: item.category?.name ?? item.course_name ?? "Unknown Course",
   status: new Date(item.expiry_date) > today ? "active" : "expired",
 }));
+
 
 
       setEnrollments(updatedData);
