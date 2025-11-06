@@ -160,6 +160,8 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Star, Quote } from "lucide-react";
+import Link from "next/link";
+
 
 interface Testimonial {
   id: string;
@@ -287,28 +289,30 @@ export default function TestimonialsPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-gradient-to-r from-blue-100 via-blue-200 to-blue-300 text-blue-900 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="container mx-auto px-6"
-        >
-          <h2 className="text-4xl font-bold mb-4">
-            Ready to Write Your Own Success Story?
-          </h2>
-          <p className="text-lg opacity-90 mb-8">
-            Start your journey towards excellence with{" "}
-            <span className="font-semibold">PrepTara</span>.
-          </p>
-          <a
-            href="/practice-tests"
-            className="inline-block bg-blue-600 text-white font-semibold py-3 px-8 rounded-full shadow-lg hover:shadow-2xl transition-transform hover:-translate-y-1"
-          >
-            Start Practice Tests
-          </a>
-        </motion.div>
-      </section>
+<section className="py-24 bg-gradient-to-r from-blue-100 via-blue-200 to-blue-300 text-blue-900 text-center">
+  <motion.div
+    initial={{ opacity: 0, y: 30 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    className="container mx-auto px-6"
+  >
+    <h2 className="text-4xl font-bold mb-4">
+      Ready to Write Your Own Success Story?
+    </h2>
+    <p className="text-lg opacity-90 mb-8">
+      Start your journey towards excellence with{" "}
+      <span className="font-semibold">PrepTara</span>.
+    </p>
+
+    <Link
+      href="/practice-tests"
+      className="inline-block bg-blue-600 text-white font-semibold py-3 px-8 rounded-full shadow-lg hover:shadow-2xl transition-transform hover:-translate-y-1"
+    >
+      Start Practice Tests
+    </Link>
+  </motion.div>
+</section>
+
     </main>
   );
 }
