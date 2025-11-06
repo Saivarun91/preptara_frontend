@@ -24,11 +24,16 @@ interface RazorpayResponse {
   razorpay_signature: string;
 }
 
+interface RazorpayInstance {
+  open: () => void;
+}
+
 declare global {
   interface Window {
-    Razorpay: new (options: RazorpayOptions) => any;
+    Razorpay: new (options: RazorpayOptions) => RazorpayInstance;
   }
 }
+
 
 interface RazorpayOptions {
   key: string;
