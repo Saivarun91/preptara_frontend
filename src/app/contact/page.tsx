@@ -72,7 +72,7 @@ const Contact = () => {
               Get in <span className="bg-gradient-primary bg-clip-text text-transparent">Touch</span>
             </h1>
             <p className="text-xl text-muted-foreground">
-              Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+              Have questions? We&apos;d love to hear from you. Send us a message and we&apos;ll respond as soon as possible.
             </p>
           </motion.div>
         </div>
