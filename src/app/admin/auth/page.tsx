@@ -283,7 +283,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck } from "lucide-react";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { useAuth } from "@/contexts/AuthContext";
 
 // ----------------------- API URLs -----------------------
@@ -291,6 +291,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8
 const LOGIN_URL = `${API_BASE_URL}/api/users/admin/login/`;
 const REGISTER_URL = `${API_BASE_URL}/api/users/admin/register/`;
 
+// ----------------------- Types -----------------------
 interface ApiResponse {
   success?: boolean;
   message?: string;
@@ -301,6 +302,7 @@ interface ApiResponse {
 export default function AuthPage() {
   const router = useRouter();
   const { login } = useAuth();
+
   const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -327,28 +329,30 @@ export default function AuthPage() {
         email: loginEmail,
         password: loginPassword,
       });
-      console.log("data");
-      console.log(res.data);
+
       if (res.data.token) {
         localStorage.setItem("token", res.data.token);
-        console.log(res.data);
         localStorage.setItem("admin_id", res.data.admin?.id || "");
         localStorage.setItem("user_name", res.data.admin?.name || "Admin");
         localStorage.setItem("role", res.data.admin?.role || "admin");
         login(res.data.token);
 
-        console.log("✅ Login success, redirecting...");
-
-        // ✅ Redirect safely using a small delay
+        // ✅ Redirect safely
         setTimeout(() => {
-          router.replace("/admin/categories"); // Use replace instead of push
+          router.replace("/admin/categories");
         }, 500);
       } else {
         setLoginError(res.data.message || "Invalid credentials");
       }
-    } catch (err: any) {
-      console.error("Login Error:", err.response?.data || err.message);
-      setLoginError("Login failed. Please try again.");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const axiosError = err as AxiosError<{ message?: string }>;
+        setLoginError(axiosError.response?.data?.message || "Login failed. Please try again.");
+        console.error("Login Error:", axiosError.response?.data || axiosError.message);
+      } else {
+        setLoginError("Login failed. Please try again.");
+        console.error(err);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -379,9 +383,15 @@ export default function AuthPage() {
       } else {
         setSignupError(res.data.message || "Signup failed");
       }
-    } catch (err: any) {
-      console.error("Signup Error:", err.response?.data || err.message);
-      setSignupError("Something went wrong. Try again.");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const axiosError = err as AxiosError<{ message?: string }>;
+        setSignupError(axiosError.response?.data?.message || "Something went wrong. Try again.");
+        console.error("Signup Error:", axiosError.response?.data || axiosError.message);
+      } else {
+        setSignupError("Something went wrong. Try again.");
+        console.error(err);
+      }
     } finally {
       setIsLoading(false);
     }
