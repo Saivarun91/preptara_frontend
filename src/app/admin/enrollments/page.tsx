@@ -50,12 +50,13 @@ export default function EnrollmentsPage() {
 
       // Add `status` dynamically (active/expired)
       const today = new Date();
-      const updatedData = result.data.map((item: any) => ({
-        ...item,
-        id: item.id || item._id || "",
-        course_name: item.category?.name || item.course_name || "Unknown Course",
-        status: new Date(item.expiry_date) > today ? "active" : "expired",
-      }));
+      const updatedData: Enrollment[] = (result.data as Enrollment[]).map((item) => ({
+  ...item,
+  id: item.id || (item as any)._id || "", // _id fallback only if your backend uses Mongo
+  course_name: item.category?.name || item.course_name || "Unknown Course",
+  status: new Date(item.expiry_date) > today ? "active" : "expired",
+}));
+
 
       setEnrollments(updatedData);
     } catch (error) {
