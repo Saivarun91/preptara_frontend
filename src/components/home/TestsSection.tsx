@@ -19,9 +19,11 @@ import {
   Briefcase,
   GraduationCap,
   BookOpen,
+  LucideIcon, // ✅ Import type
 } from "lucide-react";
 
-const Icons: Record<string, any> = {
+// ✅ Strongly typed icon map
+const Icons: Record<string, LucideIcon> = {
   Award,
   FileText,
   Briefcase,
@@ -56,17 +58,33 @@ export default function TestsSection({
     try {
       const res = await fetch(BASE_URL);
       if (!res.ok) throw new Error(`Failed to fetch categories (${res.status})`);
-      const data = await res.json();
-      const formatted = data.map((cat: any) => ({
-        id: cat._id?.$oid || cat.id || cat._id || "",
+
+      // ✅ Define a backend response type instead of `any`
+      interface BackendCategory {
+        _id?: { $oid?: string };
+        id?: string;
+        name: string;
+        description: string;
+        icon?: string;
+        gradient?: string;
+      }
+
+      const data: BackendCategory[] = await res.json();
+
+      // ✅ Type-safe transformation
+      const formatted: Category[] = data.map((cat) => ({
+        id: cat._id?.$oid || cat.id || "",
         name: cat.name,
         description: cat.description,
         icon: cat.icon || "Award",
         gradient: cat.gradient || "from-blue-500 via-cyan-500 to-teal-600",
       }));
+
       setCategories(formatted);
-    } catch (err: any) {
-      setError(err.message || "Something went wrong fetching categories");
+    } catch (err) {
+      // ✅ Safely type the error
+      const message = err instanceof Error ? err.message : "Something went wrong fetching categories";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -83,7 +101,6 @@ export default function TestsSection({
   if (!categories.length)
     return <p className="text-center py-20 text-gray-500">No categories available</p>;
 
-  // ✅ Filter categories if searchQuery exists
   const filteredCategories = searchQuery
     ? categories.filter((cat) =>
         cat.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -101,7 +118,6 @@ export default function TestsSection({
           {searchQuery ? `Search results for "${searchQuery}"` : "Explore Test Categories"}
         </motion.h2>
 
-        {/* ✅ Back to All Courses button when filtered */}
         {searchQuery && (
           <div className="text-center mb-8">
             <Button variant="outline" onClick={onResetSearch}>
