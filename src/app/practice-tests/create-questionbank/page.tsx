@@ -73,9 +73,15 @@ export default function CreateQuestionBank() {
       setSelectedQuestions([]);
       setName("");
       setDescription("");
-    } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to create question bank");
-    } finally {
+   } catch (err: unknown) {
+  if (axios.isAxiosError(err)) {
+    alert(err.response?.data?.message || "Failed to create question bank");
+  } else if (err instanceof Error) {
+    alert(err.message);
+  } else {
+    alert("An unexpected error occurred");
+  }
+} finally {
       setLoading(false);
     }
   };
