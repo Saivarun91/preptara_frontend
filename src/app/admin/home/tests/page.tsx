@@ -19,8 +19,8 @@ import {
   PlusCircle,
 } from "lucide-react";
 
-// All possible icon options for categories
-const Icons: Record<string, any> = {
+// ✅ Properly typed icon map
+const Icons: Record<string, React.ComponentType<{ className?: string }>> = {
   Award,
   FileText,
   Briefcase,
@@ -51,10 +51,11 @@ export default function AdminTestsSection() {
 
   const [isEditing, setIsEditing] = useState(false);
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+  const API_BASE_URL =
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
   const BASE_URL = `${API_BASE_URL}/api/categories`;
 
-  // --- Fetch all categories from backend ---
+  // --- Fetch all categories ---
   const fetchCategories = async () => {
     setLoading(true);
     try {
@@ -63,8 +64,9 @@ export default function AdminTestsSection() {
       const data: Category[] = await res.json();
       setCategories(data);
       setError(null);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) setError(err.message);
+      else setError("Unknown error occurred while fetching categories");
     } finally {
       setLoading(false);
     }
@@ -75,7 +77,9 @@ export default function AdminTestsSection() {
   }, []);
 
   // --- Handle input changes ---
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -84,7 +88,10 @@ export default function AdminTestsSection() {
     e.preventDefault();
 
     if (!formData.name || !formData.description) {
-      toast({ title: "Error ❌", description: "Name and description are required" });
+      toast({
+        title: "Error ❌",
+        description: "Name and description are required",
+      });
       return;
     }
 
@@ -118,8 +125,12 @@ export default function AdminTestsSection() {
       });
       setIsEditing(false);
       fetchCategories();
-    } catch (err: any) {
-      toast({ title: "Error ❌", description: err.message });
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "An unexpected error occurred while saving.";
+      toast({ title: "Error ❌", description: message });
     }
   };
 
@@ -133,12 +144,16 @@ export default function AdminTestsSection() {
 
       toast({ title: "🗑️ Category deleted" });
       fetchCategories();
-    } catch (err: any) {
-      toast({ title: "Error ❌", description: err.message });
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "An unexpected error occurred while deleting.";
+      toast({ title: "Error ❌", description: message });
     }
   };
 
-  // --- Edit category (fill form) ---
+  // --- Edit category ---
   const handleEdit = (cat: Category) => {
     setFormData(cat);
     setIsEditing(true);
@@ -161,6 +176,9 @@ export default function AdminTestsSection() {
     return <p className="text-center py-20 text-gray-600">Loading categories...</p>;
   if (error)
     return <p className="text-center py-20 text-red-600">{error}</p>;
+
+  // --- RENDER (unchanged below this point) ---
+  // ✅ keep your render part as-is
 
   // --- RENDER ---
   return (
