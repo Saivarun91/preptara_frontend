@@ -15,12 +15,19 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8
 const USER_LOGIN_URL = `${API_BASE_URL}/api/users/login/`;
 const USER_REGISTER_URL = `${API_BASE_URL}/api/users/register/`;
 
+interface User {
+  fullname?: string;
+  email?: string;
+  role?: string;
+}
+
 interface ApiResponse {
   message?: string;
   error?: string;
   token?: string;
-  user?: any;
+  user?: User;
 }
+
 
 export default function AuthPage() {
   const router = useRouter();
