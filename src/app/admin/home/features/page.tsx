@@ -172,18 +172,27 @@ export default function AdminFeaturesPage() {
           variant: "destructive",
         });
       }
-    } catch (error: any) {
-      console.error("Error deleting feature:", error);
-      const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Failed to delete feature.";
-      toast({
-        title: "Error deleting feature",
-        description: message,
-        variant: "destructive",
-      });
-    }
+   } catch (error: unknown) {
+  console.error("Error deleting feature:", error);
+
+  let message = "Failed to delete feature.";
+
+  if (axios.isAxiosError(error)) {
+    message =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to delete feature.";
+  } else if (error instanceof Error) {
+    message = error.message;
+  }
+
+  toast({
+    title: "Error deleting feature",
+    description: message,
+    variant: "destructive",
+  });
+}
+
   };
 
   return (
