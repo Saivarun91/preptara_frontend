@@ -35,22 +35,37 @@ export default function AdminCategoriesPage() {
   // ------------------------
  // 1️⃣ Fetch categories
 useEffect(() => {
-  const fetchCategories = async () => {
+  const fetchCategories = async (): Promise<void> => {
     try {
       const res = await fetch(`${BASE_URL}/`);
       if (!res.ok) throw new Error(`Failed to fetch categories: ${res.status}`);
-      const data: AdminCategory[] = await res.json();
-      setCategories(data);
-      setFilteredCategories(data);
-    } catch (err: unknown) {   // ✅ changed here
+
+      // ✅ Avoid 'any' — first parse as unknown, then assert as your type
+      const data = (await res.json()) as unknown;
+
+      if (Array.isArray(data)) {
+        const formatted = data.map((cat) => ({
+          id: (cat as any).id ?? (cat as any)._id ?? "",
+          name: (cat as any).name ?? "",
+          description: (cat as any).description ?? "",
+        })) as AdminCategory[];
+
+        setCategories(formatted);
+        setFilteredCategories(formatted);
+      } else {
+        throw new Error("Unexpected response format");
+      }
+    } catch (err: unknown) {
       const error = err instanceof Error ? err.message : "Failed to fetch categories";
       setError(error);
     } finally {
       setLoading(false);
     }
   };
+
   fetchCategories();
 }, []);
+
 
 
   // ------------------------
