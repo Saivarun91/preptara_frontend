@@ -31,7 +31,7 @@ export default function TestComplete({
   answers,
   score,
   timeTaken,
-}) => {
+}: TestCompleteProps){
   const router = useRouter();
 
   const handleViewReview = () => {
