@@ -134,10 +134,18 @@ export default function StartTestPage() {
 
       setSubmitted(true);
       router.push(`/results/${testData.attempt_id}`);
-    } catch (err: any) {
-      console.error("❌ Submission error:", err);
-      alert(err.response?.data?.message || "Submission failed");
-    }
+    } catch (err: unknown) {
+  console.error("❌ Submission error:", err);
+
+  if (axios.isAxiosError(err)) {
+    alert(err.response?.data?.message || "Submission failed");
+  } else if (err instanceof Error) {
+    alert(err.message);
+  } else {
+    alert("Submission failed");
+  }
+}
+
   };
 
   if (loading)
