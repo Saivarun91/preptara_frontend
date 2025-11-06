@@ -18,6 +18,39 @@ interface Student {
   email: string;
   phone_number: string;
 }
+interface RazorpayResponse {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+}
+
+declare global {
+  interface Window {
+    Razorpay: new (options: RazorpayOptions) => any;
+  }
+}
+
+interface RazorpayOptions {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  order_id: string;
+  handler: (response: RazorpayResponse) => void;
+  prefill?: {
+    name: string;
+    email: string;
+    contact: string;
+  };
+  theme?: {
+    color: string;
+  };
+  modal?: {
+    ondismiss?: () => void;
+  };
+}
+
 
 export default function EnrollmentPage() {
   const searchParams = useSearchParams();
@@ -149,7 +182,7 @@ export default function EnrollmentPage() {
         name: "Course Enrollment",
         description: `Enrollment for ${category.name} - ${duration}`,
         order_id: orderData.order_id,
-        handler: async function (response: any) {
+        handler: async function (response: RazorpayResponse) {
           try {
             // Verify payment
             const verifyRes = await fetch(`${API_BASE_URL}/api/enrollments/payment/verify/`, {
@@ -196,7 +229,7 @@ export default function EnrollmentPage() {
         },
       };
 
-      const razorpay = new (window as any).Razorpay(options);
+      const razorpay = new window.Razorpay(options);
       razorpay.open();
     } catch (error) {
       console.error("Payment error:", error);
