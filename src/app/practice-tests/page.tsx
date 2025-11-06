@@ -29,9 +29,14 @@ export default function PracticeTestsPage() {
         if (!res.ok) throw new Error(`Failed to fetch categories: ${res.status}`);
         const data: TestCategory[] = await res.json();
         setCategories(data);
-      } catch (err: any) {
-        setError(err.message || "Failed to fetch categories");
-      } finally {
+} catch (err: unknown) {
+  if (err instanceof Error) {
+    setError(err.message);
+  } else {
+    setError("Failed to fetch categories");
+  }
+}
+ finally {
         setLoading(false);
       }
     };
