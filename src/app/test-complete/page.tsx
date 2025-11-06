@@ -54,4 +54,3 @@ export default function TestComplete({
   );
 };
 
-export default TestComplete;
