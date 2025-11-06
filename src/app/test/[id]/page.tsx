@@ -31,11 +31,15 @@ export default function StartTestDashboard() {
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setAlreadyEnrolled(res.data.already_enrolled);
-      } catch (err: any) {
-        console.error("Enrollment check failed:", err);
-        setError("Failed to check enrollment");
-        setAlreadyEnrolled(false);
-      } finally {
+     } catch (err: unknown) {
+  console.error("Enrollment check failed:", err);
+  if (err instanceof Error) {
+    setError(err.message);
+  } else {
+    setError("Failed to check enrollment");
+  }
+  setAlreadyEnrolled(false);
+} finally {
         setLoading(false);
       }
     };
@@ -65,10 +69,14 @@ export default function StartTestDashboard() {
 
       alert("✅ Free access unlocked successfully!");
       setAlreadyEnrolled(true);
-    } catch (err: any) {
-      console.error(err);
-      alert("❌ Failed to unlock free access");
-    } finally {
+} catch (err: unknown) {
+  console.error(err);
+  const message =
+    err instanceof Error
+      ? err.message
+      : "❌ Failed to unlock free access";
+  alert(message);
+} finally {
       setEnrolling(false);
     }
   };
