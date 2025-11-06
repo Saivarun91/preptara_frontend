@@ -21,7 +21,7 @@ interface ActivityItem {
   time: string;
 }
 
-const iconMap: Record<string, any> = { Users, BookOpen, FileText, Activity };
+const iconMap: Record<string, React.ElementType> = { Users, BookOpen, FileText, Activity };
 
 export default function AdminPage() {
   const router = useRouter();
