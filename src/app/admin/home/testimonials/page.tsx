@@ -29,7 +29,7 @@ export default function AdminTestimonialsPage() {
   const CLOUD_NAME = "dhy0krkef"; // <-- replace with your cloud name
   const UPLOAD_PRESET = "preptara"; // <-- replace with your unsigned preset name
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
   const GET_URL = `${API_BASE}/home/testimonials/`;
   const CREATE_URL = `${API_BASE}/home/testimonials/create/`;
   const DELETE_URL = `${API_BASE}/home/testimonials/delete/`;

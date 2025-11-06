@@ -24,7 +24,8 @@ export default function PracticeTestsPage() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:8000/api/categories/");
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+        const res = await fetch(`${API_BASE_URL}/api/categories/`);
         if (!res.ok) throw new Error(`Failed to fetch categories: ${res.status}`);
         const data: TestCategory[] = await res.json();
         setCategories(data);

@@ -25,8 +25,9 @@ export default function StartTestDashboard() {
           return;
         }
 
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
         const res = await axios.get(
-          `http://127.0.0.1:8000/api/enrollments/check/${id}/`,
+          `${API_BASE_URL}/api/enrollments/check/${id}/`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setAlreadyEnrolled(res.data.already_enrolled);
@@ -52,8 +53,9 @@ export default function StartTestDashboard() {
         return;
       }
 
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
       await axios.post(
-        `http://127.0.0.1:8000/api/enrollments/create/`,
+        `${API_BASE_URL}/api/enrollments/create/`,
         {
           course_name: id,
           duration_months: 1,

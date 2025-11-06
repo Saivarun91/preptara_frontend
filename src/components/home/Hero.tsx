@@ -21,7 +21,8 @@ export default function Hero({ onSearch }: { onSearch: (query: string) => void }
   useEffect(() => {
     const fetchHero = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:8000/api/home/hero/");
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+        const res = await fetch(`${API_BASE_URL}/api/home/hero/`);
         if (!res.ok) throw new Error("Failed to fetch hero data");
         const heroData = await res.json();
         setData(heroData.data);

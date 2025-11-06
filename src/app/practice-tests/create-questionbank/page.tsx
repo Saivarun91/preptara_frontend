@@ -27,12 +27,13 @@ export default function CreateQuestionBank() {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
-        const resCategories = await axios.get("http://127.0.0.1:8000/api/categories/", {
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+        const resCategories = await axios.get(`${API_BASE_URL}/api/categories/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setCategories(resCategories.data);
 
-        const resQuestions = await axios.get("http://127.0.0.1:8000/api/questions/", {
+        const resQuestions = await axios.get(`${API_BASE_URL}/api/questions/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setQuestions(resQuestions.data);
@@ -59,8 +60,9 @@ export default function CreateQuestionBank() {
         question_ids: selectedQuestions,
       };
 
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
       const res = await axios.post(
-        "http://127.0.0.1:8000/api/question-bank/create/",
+        `${API_BASE_URL}/api/question-bank/create/`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );

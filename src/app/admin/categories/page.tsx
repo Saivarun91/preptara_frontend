@@ -27,7 +27,8 @@ export default function AdminCategoriesPage() {
   const [editId, setEditId] = useState<string | null>(null);
   const router = useRouter();
 
-  const BASE_URL = "http://127.0.0.1:8000/api/categories";
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+  const BASE_URL = `${API_BASE_URL}/api/categories`;
 
   // ------------------------
   // FETCH CATEGORIES

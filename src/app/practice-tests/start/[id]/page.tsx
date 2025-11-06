@@ -45,8 +45,9 @@ export default function StartTestPage() {
           router.push("/login");
           return;
         }
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
         const res = await axios.get(
-          `http://127.0.0.1:8000/api/enrollments/check/${id}/test`,
+          `${API_BASE_URL}/api/enrollments/check/${id}/test`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setEnrolled(res.data.already_enrolled);
@@ -68,8 +69,9 @@ export default function StartTestPage() {
     const fetchTest = async () => {
       try {
         const token = localStorage.getItem("token");
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
         const res = await axios.post(
-          "http://127.0.0.1:8000/api/exams/start/",
+          `${API_BASE_URL}/api/exams/start/`,
           { category_id: id },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -123,8 +125,9 @@ export default function StartTestPage() {
         selected_answers: Array.isArray(ans) ? ans : [ans],
       }));
 
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
       await axios.post(
-        `http://127.0.0.1:8000/api/exams/attempt/${testData.attempt_id}/submit/`,
+        `${API_BASE_URL}/api/exams/attempt/${testData.attempt_id}/submit/`,
         { user_answers },
         { headers: { Authorization: `Bearer ${token}` } }
       );

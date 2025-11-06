@@ -287,8 +287,9 @@ import axios from "axios";
 import { useAuth } from "@/contexts/AuthContext";
 
 // ----------------------- API URLs -----------------------
-const LOGIN_URL = "http://127.0.0.1:8000/api/users/admin/login/";
-const REGISTER_URL = "http://127.0.0.1:8000/api/users/admin/register/";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+const LOGIN_URL = `${API_BASE_URL}/api/users/admin/login/`;
+const REGISTER_URL = `${API_BASE_URL}/api/users/admin/register/`;
 
 interface ApiResponse {
   success?: boolean;

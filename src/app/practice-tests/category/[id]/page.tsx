@@ -32,8 +32,9 @@ export default function CategoryTestsPage() {
   useEffect(() => {
     const fetchTests = async () => {
       try {
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
         // Fetch category info
-        const catRes = await fetch(`http://127.0.0.1:8000/api/categories/${id}/`);
+        const catRes = await fetch(`${API_BASE_URL}/api/categories/${id}/`);
         if (!catRes.ok) throw new Error("Category not found");
         const catData = await catRes.json();
         setCategoryName(catData.name);
@@ -43,7 +44,7 @@ export default function CategoryTestsPage() {
         const token = localStorage.getItem("token");
         if (token) {
           const enrollRes = await fetch(
-            `http://127.0.0.1:8000/api/enrollments/check/${id}/`,
+            `${API_BASE_URL}/api/enrollments/check/${id}/`,
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -57,7 +58,7 @@ export default function CategoryTestsPage() {
 
         // Fetch tests
         const testRes = await fetch(
-          `http://127.0.0.1:8000/api/tests/category/${id}/`
+          `${API_BASE_URL}/api/tests/category/${id}/`
         );
         if (!testRes.ok) throw new Error("Failed to fetch tests");
         const testData: PracticeTest[] = await testRes.json();

@@ -18,8 +18,9 @@ export default function AnalyticsPage() {
       if (!token) return; // wait for token
 
       try {
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
         const response = await axios.get(
-          "http://127.0.0.1:8000/api/categories/analytics/",
+          `${API_BASE_URL}/api/categories/analytics/`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

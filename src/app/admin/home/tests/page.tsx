@@ -51,7 +51,8 @@ export default function AdminTestsSection() {
 
   const [isEditing, setIsEditing] = useState(false);
 
-  const BASE_URL = "http://127.0.0.1:8000/api/categories";
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+  const BASE_URL = `${API_BASE_URL}/api/categories`;
 
   // --- Fetch all categories from backend ---
   const fetchCategories = async () => {

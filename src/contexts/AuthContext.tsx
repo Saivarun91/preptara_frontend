@@ -110,7 +110,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // ✅ Fetch user profile from backend
   const fetchUserProfile = async (authToken: string) => {
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/users/profile/", {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+      const res = await axios.get(`${API_BASE_URL}/api/users/profile/`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       setUser(res.data.profile);

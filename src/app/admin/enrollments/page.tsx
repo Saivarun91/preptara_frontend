@@ -38,7 +38,8 @@ export default function EnrollmentsPage() {
   const fetchEnrollments = async () => {
     try {
       setLoading(true);
-      const res = await fetch("http://127.0.0.1:8000/api/enrollments/", {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+      const res = await fetch(`${API_BASE_URL}/api/enrollments/`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -73,7 +74,8 @@ export default function EnrollmentsPage() {
     if (!confirm("Are you sure you want to remove this enrollment?")) return;
 
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/admin/enrollments/${id}/delete/`, {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+      const res = await fetch(`${API_BASE_URL}/api/admin/enrollments/${id}/delete/`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

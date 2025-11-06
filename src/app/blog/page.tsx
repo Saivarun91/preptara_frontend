@@ -36,7 +36,8 @@ export default function BlogPage() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [loading, setLoading] = useState(true);
 
-  const API_BASE = "http://127.0.0.1:8000/api/blogs/";
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+  const API_BASE = `${API_BASE_URL}/api/blogs/`;
 
   // -------------------------
   // Fetch blogs from backend

@@ -41,7 +41,8 @@ export default function PracticeTestDetailPage() {
   useEffect(() => {
     const fetchCategory = async () => {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/api/categories/${categoryId}/`);
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+        const res = await fetch(`${API_BASE_URL}/api/categories/${categoryId}/`);
         const data = await res.json();
         if (data.success) {
           setCategory(data.data);
@@ -65,7 +66,7 @@ export default function PracticeTestDetailPage() {
 
       try {
         const res = await fetch(
-          `http://127.0.0.1:8000/api/enrollments/check/${categoryId}/`,
+          `${API_BASE_URL}/api/enrollments/check/${categoryId}/`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -106,7 +107,8 @@ const handleUnlockAccess = async () => {
 
   try {
     setUnlocking(true);
-    const res = await fetch("http://127.0.0.1:8000/api/enrollments/create/", {
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+    const res = await fetch(`${API_BASE_URL}/api/enrollments/create/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -49,7 +49,8 @@ export default function TestsSection({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const BASE_URL = "http://127.0.0.1:8000/api/categories/";
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+  const BASE_URL = `${API_BASE_URL}/api/categories/`;
 
   const fetchCategories = async () => {
     try {

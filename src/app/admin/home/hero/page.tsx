@@ -25,7 +25,8 @@ export default function HeroUploader() {
   useEffect(() => {
     const fetchHeroData = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:8000/api/home/hero/");
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+        const res = await fetch(`${API_BASE_URL}/api/home/hero/`);
         const data = await res.json();
         console.log("data : ",data)
         if (data.success) {
@@ -79,9 +80,10 @@ export default function HeroUploader() {
     }
 
     try {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
       const url = heroId
-        ? `http://127.0.0.1:8000/api/home/hero/update/${heroId}/`
-        : "http://127.0.0.1:8000/api/home/hero/add/";
+        ? `${API_BASE_URL}/api/home/hero/update/${heroId}/`
+        : `${API_BASE_URL}/api/home/hero/add/`;
 
       const res = await fetch(url, {
         method: "POST",

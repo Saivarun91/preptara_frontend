@@ -11,8 +11,9 @@ import { Button } from "@/components/ui/button";
 import { GraduationCap } from "lucide-react";
 
 // ----------------------- API URLs -----------------------
-const USER_LOGIN_URL = "http://127.0.0.1:8000/api/users/login/";
-const USER_REGISTER_URL = "http://127.0.0.1:8000/api/users/register/";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+const USER_LOGIN_URL = `${API_BASE_URL}/api/users/login/`;
+const USER_REGISTER_URL = `${API_BASE_URL}/api/users/register/`;
 
 interface ApiResponse {
   message?: string;

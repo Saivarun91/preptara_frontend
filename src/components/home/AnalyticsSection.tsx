@@ -20,7 +20,7 @@ export default function AnalyticsSection({ data }: AnalyticsSectionProps) {
   const [stats, setStats] = useState<AnalyticsStat[]>(data || []);
   const [loading, setLoading] = useState(!data);
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
 
   useEffect(() => {
     if (data) return;

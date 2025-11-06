@@ -63,8 +63,9 @@ export default function QuestionManagement() {
     passing_score: number = 60
   ) => {
     try {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
       const res = await axios.post(
-        "http://127.0.0.1:8000/api/exams/create/",
+        `${API_BASE_URL}/api/exams/create/`,
         {
           category_id,
           title,
@@ -94,7 +95,8 @@ export default function QuestionManagement() {
   const fetchQuestions = async () => {
     try {
       setLoadingQuestions(true);
-      const res = await axios.get("http://127.0.0.1:8000/api/questions/", {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+      const res = await axios.get(`${API_BASE_URL}/api/questions/`, {
         params: { category_id: id },
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -114,7 +116,7 @@ export default function QuestionManagement() {
       const token = localStorage.getItem("token"); // or however you store it
 
       const res = await axios.get(
-        "http://127.0.0.1:8000/api/exams/questions/csv-files/",
+        `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000"}/api/exams/questions/csv-files/`,
         {
           params: { category_id: id },
           headers: {
@@ -153,8 +155,9 @@ export default function QuestionManagement() {
 
     try {
       setUploading(true);
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
       const res = await axios.post(
-        "http://127.0.0.1:8000/api/exams/questions/upload-csv/",
+        `${API_BASE_URL}/api/exams/questions/upload-csv/`,
         formData,
         {
           headers: {
@@ -179,7 +182,8 @@ export default function QuestionManagement() {
   const handleDelete = async (qid: string) => {
     if (!confirm("Are you sure you want to delete this question?")) return;
     try {
-      await axios.delete("http://127.0.0.1:8000/api/exams/questions/bulk-delete/", {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+      await axios.delete(`${API_BASE_URL}/api/exams/questions/bulk-delete/`, {
         headers: { Authorization: `Bearer ${token}` },
         data: { question_ids: [qid] }, // ✅ fixed: delete single question
       });
@@ -202,8 +206,9 @@ export default function QuestionManagement() {
       return;
 
     try {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
       const res = await axios.delete(
-        "http://127.0.0.1:8000/api/exams/questions/bulk-delete/",
+        `${API_BASE_URL}/api/exams/questions/bulk-delete/`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -232,7 +237,7 @@ export default function QuestionManagement() {
       setDeletingCsvId(csvId);
       // assume delete endpoint is: DELETE /api/exams/questions/csv-files/{csvId}/
       const res = await axios.delete(
-        `http://127.0.0.1:8000/api/exams/questions/csv-files/${csvId}/`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000"}/api/exams/questions/csv-files/${csvId}/`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -266,8 +271,9 @@ export default function QuestionManagement() {
     e.preventDefault();
 
     try {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
       const res = await axios.post(
-        "http://127.0.0.1:8000/api/questions/create/",
+        `${API_BASE_URL}/api/questions/create/`,
         {
           ...newQuestion,
           category_id: id,
@@ -718,7 +724,7 @@ export default function QuestionManagement() {
 //   ) => {
 //     try {
 //       const res = await axios.post(
-//         "http://127.0.0.1:8000/api/exams/create/",
+//         `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000"}/api/exams/create/`,
 //         {
 //           category_id,
 //           title,

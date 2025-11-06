@@ -24,7 +24,8 @@ export default function FAQSection() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const API_URL = "http://127.0.0.1:8000/api/home/faqs/";
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+  const API_URL = `${API_BASE_URL}/api/home/faqs/`;
 
   useEffect(() => {
     async function fetchFAQs() {

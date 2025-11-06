@@ -40,8 +40,9 @@ export default function EnrollmentPage() {
 
     const fetchData = async () => {
       try {
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
         // ✅ Fetch category
-        const catRes = await fetch(`http://127.0.0.1:8000/api/categories/${categoryId}/`);
+        const catRes = await fetch(`${API_BASE_URL}/api/categories/${categoryId}/`);
         if (!catRes.ok) throw new Error("Failed to fetch category");
         const catData: Category = await catRes.json();
         setCategory(catData);
@@ -50,7 +51,7 @@ export default function EnrollmentPage() {
         const token = localStorage.getItem("token");
         if (!token) throw new Error("User not logged in");
 
-        const studentRes = await fetch("http://127.0.0.1:8000/api/users/me/", {
+        const studentRes = await fetch(`${API_BASE_URL}/api/users/me/`, {
           headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`,
@@ -62,7 +63,7 @@ export default function EnrollmentPage() {
 
         // ✅ Check if already enrolled
         const enrollmentRes = await fetch(
-          `http://127.0.0.1:8000/api/enrollments/check/${categoryId}/`,
+          `${API_BASE_URL}/api/enrollments/check/${categoryId}/`,
           { headers: { "Authorization": `Bearer ${token}` } }
         );
         if (enrollmentRes.ok) {
@@ -110,8 +111,9 @@ export default function EnrollmentPage() {
       const durationMonths = duration === "1-month" ? 1 : 3;
       const amount = duration === "1-month" ? 99 : 299;
 
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
       // Create Razorpay order
-      const orderRes = await fetch("http://127.0.0.1:8000/api/enrollments/payment/create-order/", {
+      const orderRes = await fetch(`${API_BASE_URL}/api/enrollments/payment/create-order/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -150,7 +152,7 @@ export default function EnrollmentPage() {
         handler: async function (response: any) {
           try {
             // Verify payment
-            const verifyRes = await fetch("http://127.0.0.1:8000/api/enrollments/payment/verify/", {
+            const verifyRes = await fetch(`${API_BASE_URL}/api/enrollments/payment/verify/`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",

@@ -21,7 +21,8 @@ export default function AdminSettingsPage() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await axios.get("http://127.0.0.1:8000/api/settings/get/", {
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+        const res = await axios.get(`${API_BASE_URL}/api/settings/get/`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -61,8 +62,9 @@ export default function AdminSettingsPage() {
         ...updatedFields, // override only the changed fields
       };
 
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
       const res = await axios.post(
-        "http://127.0.0.1:8000/api/settings/update/",
+        `${API_BASE_URL}/api/settings/update/`,
         payload,
         {
           headers: {

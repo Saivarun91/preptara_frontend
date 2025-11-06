@@ -41,12 +41,13 @@ export default function AdminCategoryTestsPage() {
   useEffect(() => {
     const fetchTests = async () => {
       try {
-        const catRes = await fetch(`http://127.0.0.1:8000/api/categories/${id}/`);
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+        const catRes = await fetch(`${API_BASE_URL}/api/categories/${id}/`);
         if (!catRes.ok) throw new Error("Category not found");
         const catData = await catRes.json();
         setCategoryName(catData.name);
 
-        const testRes = await fetch(`http://127.0.0.1:8000/api/tests/category/${id}/`);
+        const testRes = await fetch(`${API_BASE_URL}/api/tests/category/${id}/`);
         if (!testRes.ok) throw new Error("Failed to fetch tests");
         const testData: AdminPracticeTest[] = await testRes.json();
         setTests(testData);
@@ -75,7 +76,8 @@ export default function AdminCategoryTestsPage() {
 
     try {
       for (const testId of selectedTests) {
-        await fetch(`http://127.0.0.1:8000/api/tests/${testId}/delete/`, {
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+        await fetch(`${API_BASE_URL}/api/tests/${testId}/delete/`, {
           method: "DELETE",
         });
       }
@@ -91,7 +93,8 @@ export default function AdminCategoryTestsPage() {
   const handleDeleteTest = async (slug: string) => {
     if (!confirm("Are you sure you want to delete this test?")) return;
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/tests/${slug}/delete/`, {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+      const res = await fetch(`${API_BASE_URL}/api/tests/${slug}/delete/`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Failed to delete test");
@@ -114,7 +117,8 @@ export default function AdminCategoryTestsPage() {
     const slug = title.toLowerCase().trim().replace(/\s+/g, "-");
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/tests/create/", {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+      const res = await fetch(`${API_BASE_URL}/api/tests/create/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -150,8 +154,9 @@ export default function AdminCategoryTestsPage() {
     if (!editingTest) return;
 
     try {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
       const res = await fetch(
-        `http://127.0.0.1:8000/api/tests/${editingTest.id}/update/`,
+        `${API_BASE_URL}/api/tests/${editingTest.id}/update/`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
