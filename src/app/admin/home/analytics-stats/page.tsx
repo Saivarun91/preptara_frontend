@@ -239,9 +239,12 @@ export default function AdminAnalyticsPage() {
           </p>
         ) : (
           stats.map((stat, i) => {
-            const IconComponent =
-              (LucideIcons as unknown as Record<string, React.ComponentType<any>>)[stat.icon] ||
-              LucideIcons.BarChart2;
+const IconComponent =
+  (LucideIcons as unknown as Record<
+    string,
+    React.FC<React.SVGProps<SVGSVGElement>>
+  >)[stat.icon] || LucideIcons.BarChart2;
+
 
             return (
               <motion.div
