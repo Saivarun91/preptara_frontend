@@ -49,7 +49,8 @@ export default function EnrollmentsPage() {
 
       // Add `status` dynamically (active/expired)
       const today = new Date();
-      const updatedData: Enrollment[] = result.data.map((item: any) => ({
+   const updatedData: Enrollment[] = (result.data as Enrollment[]).map((item) => ({
+
         ...item,
         id: item.id || item._id || "",
         user_name: item.user_name || "Unknown User",
