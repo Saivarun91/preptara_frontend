@@ -49,17 +49,19 @@ export default function EnrollmentsPage() {
 
       // Add `status` dynamically (active/expired)
       const today = new Date();
-   const updatedData: Enrollment[] = (result.data as Enrollment[]).map((item) => ({
+ type BackendEnrollment = Enrollment & { _id?: string };
 
-        ...item,
-        id: item.id || item._id || "",
-        user_name: item.user_name || "Unknown User",
-        course_name: item.category?.name || item.course_name || "Unknown Course",
-        duration_months: item.duration_months ?? 0,
-        enrolled_date: item.enrolled_date || "",
-        expiry_date: item.expiry_date || "",
-        status: new Date(item.expiry_date) > today ? "active" : "expired",
-      }));
+const updatedData: Enrollment[] = (result.data as BackendEnrollment[]).map((item) => ({
+  ...item,
+  id: item.id || item._id || "", // ✅ now TypeScript knows _id might exist
+  user_name: item.user_name || "Unknown User",
+  course_name: item.category?.name || item.course_name || "Unknown Course",
+  duration_months: item.duration_months ?? 0,
+  enrolled_date: item.enrolled_date || "",
+  expiry_date: item.expiry_date || "",
+  status: new Date(item.expiry_date) > new Date() ? "active" : "expired",
+}));
+
 
       setEnrollments(updatedData);
     } catch (error) {
