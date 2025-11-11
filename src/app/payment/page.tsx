@@ -8,12 +8,15 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTest } from "@/contexts/TestContext";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CreditCard, Lock, User, Mail, Crown, Sparkles, CheckCircle2 } from "lucide-react";
 
-const Payment = () => {
+// Force dynamic rendering since this page depends on search params
+export const dynamic = 'force-dynamic';
+
+const PaymentContent = () => {
   const { user: UserProfile, isLoggedIn } = useAuth();
   const { unlockCourseAccess } = useTest();
   const router = useRouter();
@@ -264,4 +267,14 @@ const Payment = () => {
   );
 };
 
-export default Payment;
+export default function Payment() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen pt-16 pb-12 flex items-center justify-center">
+        <p className="text-center py-20">Loading...</p>
+      </div>
+    }>
+      <PaymentContent />
+    </Suspense>
+  );
+}
