@@ -53,6 +53,8 @@ export const Navbar = () => {
   }, []);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     // Load dark mode
     setIsDark(document.documentElement.classList.contains("dark"));
 
