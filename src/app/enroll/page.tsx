@@ -11,6 +11,44 @@ interface Category {
   name: string;
   description: string;
 }
+// --- Razorpay type definitions ---
+declare global {
+  interface Window {
+    Razorpay: new (options: RazorpayOptions) => RazorpayInstance;
+  }
+}
+
+interface RazorpayResponse {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}
+
+interface RazorpayOptions {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  order_id: string;
+  handler: (response: RazorpayResponse) => void;
+  prefill?: {
+    name: string;
+    email: string;
+    contact: string;
+  };
+  theme?: {
+    color: string;
+  };
+  modal?: {
+    ondismiss?: () => void;
+  };
+}
+
+interface RazorpayInstance {
+  open: () => void;
+}
+
 
 interface Student {
   id: string;
@@ -147,7 +185,8 @@ function EnrollmentContent() {
         name: "Course Enrollment",
         description: `Enrollment for ${category.name} - ${duration}`,
         order_id: orderData.order_id,
-        handler: async function (response: any) {
+handler: async function (response: RazorpayResponse) {
+
           try {
             // Verify payment
             const verifyRes = await fetch("http://127.0.0.1:8000/api/enrollments/payment/verify/", {
@@ -194,7 +233,8 @@ function EnrollmentContent() {
         },
       };
 
-      const razorpay = new (window as any).Razorpay(options);
+const razorpay = new window.Razorpay(options);
+
       razorpay.open();
     } catch (error) {
       console.error("Payment error:", error);
