@@ -14,7 +14,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { CreditCard, Lock, User, Mail, Crown, Sparkles, CheckCircle2 } from "lucide-react";
 
 const Payment = () => {
-  const { userName, userEmail, isLoggedIn } = useAuth();
+  const { user: UserProfile, isLoggedIn } = useAuth();
   const { unlockCourseAccess } = useTest();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -46,7 +46,7 @@ const Payment = () => {
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     if (courseId && isLoggedIn && unlockCourseAccess) {
-      unlockCourseAccess(Number(courseId), plan);
+      unlockCourseAccess(courseId, plan);
     }
 
     toast({
@@ -85,11 +85,11 @@ const Payment = () => {
                 <div className="space-y-4">
                   <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
                     <div className="h-12 w-12 rounded-full bg-gradient-primary flex items-center justify-center text-white text-xl font-bold">
-                      {userName.charAt(0).toUpperCase()}
+                      {UserProfile?.fullname.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <p className="font-semibold">{userName}</p>
-                      <p className="text-sm text-muted-foreground">{userEmail}</p>
+                      <p className="font-semibold">{UserProfile?.fullname}</p>
+                      <p className="text-sm text-muted-foreground">{UserProfile?.email}</p>
                     </div>
                   </div>
                 </div>
