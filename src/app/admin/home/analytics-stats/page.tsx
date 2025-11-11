@@ -36,7 +36,7 @@ export default function AdminAnalyticsPage() {
   const { toast } = useToast();
 
   const API_BASE =
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+    process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
 
   // Fetch stats
   const fetchStats = async () => {
@@ -239,10 +239,9 @@ export default function AdminAnalyticsPage() {
           </p>
         ) : (
           stats.map((stat, i) => {
-const IconComponent =
-  (LucideIcons as Record<string, React.FC<React.SVGProps<SVGSVGElement>>>)[stat.icon] ||
-  LucideIcons.BarChart2;
-
+            const IconComponent =
+              (LucideIcons as unknown as Record<string, React.ComponentType<any>>)[stat.icon] ||
+              LucideIcons.BarChart2;
 
             return (
               <motion.div
