@@ -38,8 +38,7 @@ export default function EnrollmentsPage() {
   const fetchEnrollments = async () => {
     try {
       setLoading(true);
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
-      const res = await fetch(`${API_BASE_URL}/api/enrollments/`, {
+      const res = await fetch("http://127.0.0.1:8000/api/admin/enrollments/", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -48,23 +47,18 @@ export default function EnrollmentsPage() {
       if (!res.ok) throw new Error("Failed to fetch enrollments");
       const result = await res.json();
 
-
-// Add `status` dynamically (active/expired)
-const today = new Date();
-
-// 👇 Define a safe type for raw backend items
-interface RawEnrollment extends Partial<Enrollment> {
-  _id?: string;
-}
-
-const updatedData: Enrollment[] = (result.data as unknown as RawEnrollment[]).map((item) => ({
-  ...item,
-  id: item.id ?? item._id ?? "", // ✅ no `any`
-  course_name: item.category?.name ?? item.course_name ?? "Unknown Course",
-  status: new Date(item.expiry_date) > today ? "active" : "expired",
-}));
-
-
+      // Add `status` dynamically (active/expired)
+      const today = new Date();
+      const updatedData: Enrollment[] = result.data.map((item: any) => ({
+        ...item,
+        id: item.id || item._id || "",
+        user_name: item.user_name || "Unknown User",
+        course_name: item.category?.name || item.course_name || "Unknown Course",
+        duration_months: item.duration_months ?? 0,
+        enrolled_date: item.enrolled_date || "",
+        expiry_date: item.expiry_date || "",
+        status: new Date(item.expiry_date) > today ? "active" : "expired",
+      }));
 
       setEnrollments(updatedData);
     } catch (error) {
@@ -83,8 +77,7 @@ const updatedData: Enrollment[] = (result.data as unknown as RawEnrollment[]).ma
     if (!confirm("Are you sure you want to remove this enrollment?")) return;
 
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
-      const res = await fetch(`${API_BASE_URL}/api/admin/enrollments/${id}/delete/`, {
+      const res = await fetch(`http://127.0.0.1:8000/api/admin/enrollments/${id}/delete/`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
