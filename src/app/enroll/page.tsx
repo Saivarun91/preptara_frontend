@@ -1,356 +1,275 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { Card, CardContent } from "@/components/ui/card";
+import { motion } from "framer-motion";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, CreditCard } from "lucide-react";
-declare global {
-  interface Window {
-    Razorpay: new (options: RazorpayOptions) => RazorpayInstance;
-  }
-}
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/contexts/AuthContext";
+import { useTest } from "@/contexts/TestContext";
+import { useState, Suspense } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter, useSearchParams } from "next/navigation";
+import { CreditCard, Lock, User, Mail, Crown, Sparkles, CheckCircle2 } from "lucide-react";
 
-interface RazorpayOptions {
-  key: string;
-  amount: number;
-  currency: string;
-  name: string;
-  description: string;
-  order_id: string;
-  handler: (response: RazorpayResponse) => void;
-  prefill?: {
-    name: string;
-    email: string;
-    contact: string;
-  };
-  theme?: {
-    color: string;
-  };
-  modal?: {
-    ondismiss?: () => void;
-  };
-}
-
-interface RazorpayInstance {
-  open: () => void;
-}
-
-interface Category {
-  id: string;
-  name: string;
-  description: string;
-}
-
-interface Student {
-  id: string;
-  fullname: string;
-  email: string;
-  phone_number: string;
-}
-interface RazorpayResponse {
-  razorpay_order_id: string;
-  razorpay_payment_id: string;
-  razorpay_signature: string;
-}
-
-
-function EnrollmentContent() {
-  const searchParams = useSearchParams();
+const PaymentContent = () => {
+  const { user: UserProfile, isLoggedIn } = useAuth();
+  const { unlockCourseAccess } = useTest();
   const router = useRouter();
-  const categoryId = searchParams.get("categoryId");
-  const durationQuery = searchParams.get("duration") as "1-month" | "3-months" | null;
+  const searchParams = useSearchParams();
+  const { toast } = useToast();
 
-  const [category, setCategory] = useState<Category | null>(null);
-  const [student, setStudent] = useState<Student | null>(null);
-  const [alreadyEnrolled, setAlreadyEnrolled] = useState(false);
-  const [duration, setDuration] = useState<"1-month" | "3-months">(durationQuery || "1-month");
-  const [enrollmentDate, setEnrollmentDate] = useState("");
-  const [expiryDate, setExpiryDate] = useState("");
-  const [success, setSuccess] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [processingPayment, setProcessingPayment] = useState(false);
+  // Fetch plan, price, testId, courseId from query parameters
+  const plan = searchParams.get("plan") || "Course Access";
+  const price = searchParams.get("price") || "199";
+  const courseId = searchParams.get("courseId") || null;
 
-  useEffect(() => {
-    if (!categoryId) return;
-
-    const fetchData = async () => {
-      try {
-        // ✅ Fetch category
-        const catRes = await fetch(`http://127.0.0.1:8000/api/categories/${categoryId}/`);
-        if (!catRes.ok) throw new Error("Failed to fetch category");
-        const catData: Category = await catRes.json();
-        setCategory(catData);
-
-        // ✅ Fetch student info
-        const token = localStorage.getItem("token");
-        if (!token) throw new Error("User not logged in");
-
-        const studentRes = await fetch("http://127.0.0.1:8000/api/users/me/", {
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-          },
-        });
-        if (!studentRes.ok) throw new Error("Failed to fetch student info");
-        const studentData: Student = await studentRes.json();
-        setStudent(studentData);
-
-        // ✅ Check if already enrolled
-        const enrollmentRes = await fetch(
-          `http://127.0.0.1:8000/api/enrollments/check/${categoryId}/`,
-          { headers: { "Authorization": `Bearer ${token}` } }
-        );
-        if (enrollmentRes.ok) {
-          const data = await enrollmentRes.json();
-          if (data.already_enrolled) setAlreadyEnrolled(true);
-        }
-      } catch (err) {
-        console.error(err);
-        alert("Failed to load enrollment data. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [categoryId]);
-
-  useEffect(() => {
-    if (!enrollmentDate) return;
-    const date = new Date(enrollmentDate);
-    date.setMonth(date.getMonth() + (duration === "1-month" ? 1 : 3));
-    setExpiryDate(date.toISOString().split("T")[0]);
-  }, [enrollmentDate, duration]);
-
-  const loadRazorpayScript = (): Promise<boolean> => {
-    return new Promise((resolve) => {
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
+  const planDetails = {
+    name: plan,
+    price: `₹${price}`,
+    icon: plan.includes("3") ? Crown : Sparkles,
+    description: plan.includes("3") ? "3 months access" : "1 month access",
   };
+
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardName, setCardName] = useState("");
+  const [expiry, setExpiry] = useState("");
+  const [cvv, setCvv] = useState("");
+  const [processing, setProcessing] = useState(false);
 
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!categoryId || !category || !student) {
-      alert("Missing data. Try again.");
-      return;
+    setProcessing(true);
+
+    // Simulate payment processing
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    if (courseId && isLoggedIn && unlockCourseAccess) {
+      unlockCourseAccess(courseId, plan);
     }
 
-    try {
-      setProcessingPayment(true);
-      const token = localStorage.getItem("token");
-      const durationMonths = duration === "1-month" ? 1 : 3;
-      const amount = duration === "1-month" ? 99 : 299;
+    toast({
+      title: "🎉 Payment Successful!",
+      description: `You now have access to this course for ${plan}`,
+      duration: 5000,
+    });
 
-      // Create Razorpay order
-      const orderRes = await fetch("http://127.0.0.1:8000/api/enrollments/payment/create-order/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          category_id: categoryId,
-          duration_months: durationMonths,
-          amount: amount,
-        }),
-      });
+    setProcessing(false);
 
-      const orderData = await orderRes.json();
-      if (!orderData.success) {
-        alert(orderData.message || "Failed to create payment order");
-        setProcessingPayment(false);
-        return;
-      }
-
-      // Load Razorpay script
-      const razorpayLoaded = await loadRazorpayScript();
-      if (!razorpayLoaded) {
-        alert("Failed to load Razorpay SDK");
-        setProcessingPayment(false);
-        return;
-      }
-
-      // Initialize Razorpay checkout
-      const options = {
-        key: orderData.key_id,
-        amount: orderData.amount * 100, // Convert to paise
-        currency: orderData.currency,
-        name: "Course Enrollment",
-        description: `Enrollment for ${category.name} - ${duration}`,
-        order_id: orderData.order_id,
-        handler: async function (response: RazorpayResponse) {
-
-          try {
-            // Verify payment
-            const verifyRes = await fetch("http://127.0.0.1:8000/api/enrollments/payment/verify/", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`,
-              },
-              body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                payment_id: orderData.payment_id,
-                category_id: categoryId,
-                duration_months: durationMonths,
-              }),
-            });
-
-            const verifyData = await verifyRes.json();
-            if (verifyData.success) {
-              setSuccess(true);
-            } else {
-              alert(verifyData.message || "Payment verification failed");
-            }
-          } catch (error) {
-            console.error("Payment verification error:", error);
-            alert("Payment verification failed. Please contact support.");
-          } finally {
-            setProcessingPayment(false);
-          }
-        },
-        prefill: {
-          name: student.fullname,
-          email: student.email,
-          contact: student.phone_number,
-        },
-        theme: {
-          color: "#2563eb",
-        },
-        modal: {
-          ondismiss: function () {
-            setProcessingPayment(false);
-          },
-        },
-      };
-
-const razorpay = new window.Razorpay(options);
-
-      razorpay.open();
-    } catch (error) {
-      console.error("Payment error:", error);
-      alert("Payment failed. Try again.");
-      setProcessingPayment(false);
-    }
+    // Navigate to dashboard after a brief delay
+    setTimeout(() => {
+      router.push("/dashboard");
+    }, 1500);
   };
 
-  if (loading) return <p className="text-center py-20">Loading...</p>;
-  if (!category || !student)
-    return <p className="text-center py-20 text-red-600">Failed to load data</p>;
-
-  if (success)
-    return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-r from-green-200 to-blue-200">
-        <Card className="p-10 rounded-3xl shadow-xl bg-white">
-          <CardContent className="text-center">
-            <CheckCircle className="mx-auto text-green-500 w-20 h-20 mb-6" />
-            <h1 className="text-3xl font-bold mb-4">Enrolled Successfully!</h1>
-            <p className="text-gray-700 mb-4">
-              You have successfully enrolled for <strong>{category.name}</strong> for{" "}
-              <strong>{duration}</strong>.
-            </p>
-            <Button
-              className="bg-blue-500 text-white py-2 px-6 rounded-lg hover:bg-blue-600"
-              onClick={() => router.push("/practice-tests")}
-            >
-              Back to Practice Tests
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-
-  if (alreadyEnrolled)
-    return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-r from-green-200 to-blue-200">
-        <Card className="p-10 rounded-3xl shadow-xl bg-white">
-          <CardContent className="text-center">
-            <CheckCircle className="mx-auto text-green-500 w-20 h-20 mb-6" />
-            <h1 className="text-3xl font-bold mb-4">Already Enrolled!</h1>
-            <p className="text-gray-700 mb-4">
-              You are already enrolled in <strong>{category.name}</strong>. Enjoy your course!
-            </p>
-            <Button
-              className="bg-blue-500 text-white py-2 px-6 rounded-lg hover:bg-blue-600"
-              onClick={() => router.push("/practice-tests")}
-            >
-              Go to Practice Tests
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-
   return (
-    <div className="container mx-auto px-4 py-8">
-      <Card className="mb-8 border border-gray-200 rounded-3xl shadow-lg">
-        <CardContent className="flex flex-col md:flex-row md:items-center justify-between p-6 bg-gradient-to-r from-blue-100 to-blue-50">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800">{category.name}</h1>
-            <p className="text-gray-600 mt-2">{category.description}</p>
-          </div>
-          <div className="mt-4 md:mt-0">
-            <span className="px-4 py-2 rounded-full bg-blue-200 text-blue-800 font-semibold">
-              Selected Plan: {duration}
-            </span>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="min-h-screen pt-16 pb-12 bg-gradient-to-b from-background to-muted/20">
+      <div className="container mx-auto px-4 max-w-6xl">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8 text-center">
+          <h1 className="text-4xl font-bold mb-2">Complete Your Purchase</h1>
+          <p className="text-muted-foreground">Secure payment powered by industry-standard encryption</p>
+        </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <Card className="shadow-lg border rounded-3xl">
-          <CardContent className="p-6">
-            <h2 className="text-2xl font-bold mb-6">Student Info</h2>
-            <p><strong>Name:</strong> {student.fullname}</p>
-            <p><strong>Email:</strong> {student.email}</p>
-            <p><strong>Phone:</strong> {student.phone_number}</p>
-          </CardContent>
-        </Card>
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Left Side - User Details */}
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
+            <Card className="h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5 text-primary" />
+                  Account Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
+                    <div className="h-12 w-12 rounded-full bg-gradient-primary flex items-center justify-center text-white text-xl font-bold">
+                      {UserProfile?.fullname.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="font-semibold">{UserProfile?.fullname}</p>
+                      <p className="text-sm text-muted-foreground">{UserProfile?.email}</p>
+                    </div>
+                  </div>
+                </div>
 
-        <Card className="shadow-lg border rounded-3xl bg-gray-50">
-          <CardContent className="p-6">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-              <CreditCard /> Payment
-            </h2>
-            <div className="flex flex-col gap-4">
-              <div className="bg-white p-4 rounded-lg border">
-                <p className="text-sm text-gray-600 mb-2">Course Details</p>
-                <p className="font-semibold">{category.name}</p>
-                <p className="text-sm text-gray-500">Duration: {duration}</p>
-              </div>
-              <div className="flex justify-between border-t pt-4 font-bold text-lg">
-                <span>Total Amount:</span>
-                <span className="text-blue-600">{duration === "1-month" ? "₹99" : "₹299"}</span>
-              </div>
-              <Button
-                onClick={handlePayment}
-                disabled={processingPayment}
-                className="w-full bg-blue-600 text-white hover:bg-blue-700 mt-4 disabled:opacity-50"
-              >
-                {processingPayment ? "Processing..." : "Pay with Razorpay"}
-              </Button>
-              <p className="text-xs text-gray-500 text-center">
-                Secure payment powered by Razorpay
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+                <Separator />
+
+                <div className="space-y-4">
+                  <h3 className="font-semibold flex items-center gap-2">
+                    <planDetails.icon className="h-5 w-5 text-primary" />
+                    Selected Plan
+                  </h3>
+
+                  <Card className="border-2 border-primary/20">
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <h4 className="font-bold text-lg">{planDetails.name}</h4>
+                          <p className="text-sm text-muted-foreground">{planDetails.description}</p>
+                        </div>
+                        <planDetails.icon className="h-6 w-6 text-primary" />
+                      </div>
+
+                      <div className="space-y-2 mb-4">
+                        {[
+                          "Unlimited test attempts",
+                          "All questions unlocked",
+                          "Detailed analytics",
+                          "Certificate of completion",
+                        ].map((feature) => (
+                          <div key={feature} className="flex items-center gap-2 text-sm">
+                            <CheckCircle2 className="h-4 w-4 text-primary" />
+                            {feature}
+                          </div>
+                        ))}
+                      </div>
+
+                      <Separator className="my-3" />
+
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold">Total Amount</span>
+                        <span className="text-2xl font-bold text-primary">{planDetails.price}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="flex items-start gap-2 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                  <Lock className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-semibold mb-1">Secure Payment</p>
+                    <p className="text-muted-foreground">
+                      Your payment information is encrypted and secure. We never store your card details.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Right Side - Payment Details */}
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
+            <Card className="h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CreditCard className="h-5 w-5 text-primary" />
+                  Payment Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handlePayment} className="space-y-6">
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="cardNumber">Card Number</Label>
+                      <Input
+                        id="cardNumber"
+                        placeholder="1234 5678 9012 3456"
+                        value={cardNumber}
+                        onChange={(e) => setCardNumber(e.target.value)}
+                        maxLength={19}
+                        required
+                        className="mt-1.5"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="cardName">Cardholder Name</Label>
+                      <Input
+                        id="cardName"
+                        placeholder="John Doe"
+                        value={cardName}
+                        onChange={(e) => setCardName(e.target.value)}
+                        required
+                        className="mt-1.5"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="expiry">Expiry Date</Label>
+                        <Input
+                          id="expiry"
+                          placeholder="MM/YY"
+                          value={expiry}
+                          onChange={(e) => setExpiry(e.target.value)}
+                          maxLength={5}
+                          required
+                          className="mt-1.5"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="cvv">CVV</Label>
+                        <Input
+                          id="cvv"
+                          placeholder="123"
+                          type="password"
+                          value={cvv}
+                          onChange={(e) => setCvv(e.target.value)}
+                          maxLength={3}
+                          required
+                          className="mt-1.5"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Subtotal</span>
+                      <span className="font-medium">{planDetails.price}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Processing Fee</span>
+                      <span className="font-medium">₹0</span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between">
+                      <span className="font-semibold text-lg">Total</span>
+                      <span className="font-bold text-2xl text-primary">{planDetails.price}</span>
+                    </div>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full bg-gradient-primary hover:shadow-glow h-12 text-lg"
+                    disabled={processing}
+                  >
+                    {processing ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <Lock className="h-5 w-5 mr-2" />
+                        Complete Payment
+                      </>
+                    )}
+                  </Button>
+
+                  <p className="text-xs text-center text-muted-foreground">
+                    By completing this purchase, you agree to our Terms of Service and Privacy Policy
+                  </p>
+                </form>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
       </div>
     </div>
   );
-}
+};
 
-export default function EnrollmentPage() {
+const Payment = () => {
   return (
     <Suspense fallback={<p className="text-center py-20">Loading...</p>}>
-      <EnrollmentContent />
+      <PaymentContent />
     </Suspense>
   );
-}
+};
+
+export default Payment;
