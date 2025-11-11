@@ -16,11 +16,11 @@ interface AnalyticsSectionProps {
   data?: AnalyticsStat[];
 }
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+
 export default function AnalyticsSection({ data }: AnalyticsSectionProps) {
   const [stats, setStats] = useState<AnalyticsStat[]>(data || []);
   const [loading, setLoading] = useState(!data);
-
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
 
   useEffect(() => {
     if (data) return;
@@ -83,10 +83,9 @@ export default function AnalyticsSection({ data }: AnalyticsSectionProps) {
         {/* Stats Grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-10 max-w-6xl mx-auto">
           {stats.map((stat, i) => {
-const iconName = stat.icon as keyof typeof LucideIcons;
-const IconComponent = (LucideIcons as unknown as Record<string, React.ComponentType<any>>)[stat.icon] ||
+            const IconComponent =
+              (LucideIcons as unknown as Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>>>)[stat.icon] ||
               LucideIcons.BarChart2;
-
 
             return (
               <motion.div
