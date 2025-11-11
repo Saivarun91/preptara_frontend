@@ -36,12 +36,13 @@ export default function PracticeTestDetailPage() {
   const [enrollmentData, setEnrollmentData] = useState<Enrollment | null>(null);
   const [loading, setLoading] = useState(true);
   const [unlocking, setUnlocking] = useState(false);
+   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
 
   // ✅ Fetch category details
   useEffect(() => {
     const fetchCategory = async () => {
       try {
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+       
         const res = await fetch(`${API_BASE_URL}/api/categories/${categoryId}/`);
         const data = await res.json();
         if (data.success) {
