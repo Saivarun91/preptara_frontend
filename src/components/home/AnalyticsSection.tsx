@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import * as LucideIcons from "lucide-react";
@@ -84,7 +84,8 @@ export default function AnalyticsSection({ data }: AnalyticsSectionProps) {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-10 max-w-6xl mx-auto">
           {stats.map((stat, i) => {
 const iconName = stat.icon as keyof typeof LucideIcons;
-const IconComponent = LucideIcons[iconName] || LucideIcons.BarChart2;
+const IconComponent = (LucideIcons as unknown as Record<string, React.ComponentType<any>>)[stat.icon] ||
+              LucideIcons.BarChart2;
 
 
             return (
