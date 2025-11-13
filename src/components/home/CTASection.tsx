@@ -17,7 +17,7 @@ interface CTAData {
   footer_note?: string;
   background_image?: string | null;
 }
-
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
 export const CTASection = () => {
   const [data, setData] = useState<CTAData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -25,7 +25,7 @@ export const CTASection = () => {
   useEffect(() => {
     const fetchCTA = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/home/cta/`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/home/cta/`);
         const result = await res.json();
 
         if (result.success) {
