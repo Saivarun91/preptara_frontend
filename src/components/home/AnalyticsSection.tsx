@@ -27,7 +27,7 @@ export default function AnalyticsSection({ data }: AnalyticsSectionProps) {
 
     const fetchStats = async () => {
       try {
-        const res = await fetch(`${API_BASE}/home/analytics/`);
+        const res = await fetch(`${API_BASE}/api/home/analytics/`);
         const json = await res.json();
         if (json.success && json.stats) setStats(json.stats);
       } catch (err) {
