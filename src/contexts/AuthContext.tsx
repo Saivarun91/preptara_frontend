@@ -100,26 +100,18 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   // const [token, setToken] = useState<string | null>(null);
-  const [user, setUser] = useState<UserProfile | null>(() => {
-    if (typeof window !== "undefined") {
-      const storedUser = localStorage.getItem("user");
-      return storedUser ? JSON.parse(storedUser) : null;
-    }
-    return null;
-  });
+  const [user, setUser] = useState<UserProfile | null>(()=>localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user") || "") : null);
   const [loading, setLoading] = useState(true); // 👈 controls initial delay
-  const [token, setToken] = useState<string | null>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("token");
-    }
-    return null;
-  });
+  const [token, setToken] = useState<string | null>(
+    () => localStorage.getItem("token")
+  );
 
 
   // ✅ Fetch user profile from backend
   const fetchUserProfile = async (authToken: string) => {
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/users/profile/", {
+      // const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users/profile/`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       setUser(res.data.profile);
@@ -149,8 +141,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // ✅ On first mount — load from storage instantly
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
     const storedToken = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
 
