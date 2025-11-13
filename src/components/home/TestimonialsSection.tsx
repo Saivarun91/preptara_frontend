@@ -284,7 +284,7 @@ export default function TestimonialsSection() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/home/testimonials/`;
+  const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/api/home/testimonials/`;
 
   useEffect(() => {
     async function fetchTestimonials() {
