@@ -96,7 +96,7 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   // const [token, setToken] = useState<string | null>(null);
@@ -110,8 +110,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // ✅ Fetch user profile from backend
   const fetchUserProfile = async (authToken: string) => {
     try {
-      // const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users/profile/`, {
+      
+      const res = await axios.get(`${API_BASE}/api/users/profile/`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       setUser(res.data.profile);
